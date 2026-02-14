@@ -129,8 +129,8 @@ lang = "py"
 client = Groq(
     api_key="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",
 )
-GITHUB_TOKEN = os.getenv("GITHUB_TOKEN")
-USERNAME = os.getenv("GITHUB_USERNAME")
+GITHUB_TOKEN = "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"
+USERNAME = "ABUHURAIRA114"
 
 HEADERS = {
     "Authorization": f"token {GITHUB_TOKEN}",
@@ -207,4 +207,4 @@ def run_agent():
 
     print(f"\nAGENT COMPLETE: https://github.com/{USERNAME}/{repo_name}")
 
-run_agent()
+# run_agent()

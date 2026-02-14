@@ -1,536 +1,386 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Learning Roadmap Generator</title>
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-        
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            min-height: 100vh;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            padding: 20px;
-        }
-        
-        .container {
-            background: white;
-            border-radius: 15px;
-            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
-            padding: 40px;
-            max-width: 600px;
-            width: 100%;
-        }
-        
-        h1 {
-            color: #333;
-            margin-bottom: 10px;
-            text-align: center;
-            font-size: 28px;
-        }
-        
-        .subtitle {
-            color: #666;
-            text-align: center;
-            margin-bottom: 30px;
-            font-size: 14px;
-        }
-        
-        .form-group {
-            margin-bottom: 25px;
-        }
-        
-        label {
-            display: block;
-            margin-bottom: 8px;
-            color: #333;
-            font-weight: 600;
-            font-size: 14px;
-        }
-        
-        input[type="text"],
-        textarea {
-            width: 100%;
-            padding: 12px 15px;
-            border: 2px solid #e0e0e0;
-            border-radius: 8px;
-            font-family: inherit;
-            font-size: 14px;
-            transition: border-color 0.3s;
-        }
-        
-        input[type="text"]:focus,
-        textarea:focus {
-            outline: none;
-            border-color: #667eea;
-            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
-        }
-        
-        textarea {
-            resize: vertical;
-            min-height: 80px;
-            font-family: inherit;
-        }
-        
-        .help-text {
-            font-size: 12px;
-            color: #999;
-            margin-top: 5px;
-        }
-        
-        button {
-            width: 100%;
-            padding: 14px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            border: none;
-            border-radius: 8px;
-            font-size: 16px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: transform 0.2s, box-shadow 0.2s;
-        }
-        
-        button:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
-        }
-        
-        button:active {
-            transform: translateY(0);
-        }
-        
-        button:disabled {
-            opacity: 0.6;
-            cursor: not-allowed;
-            transform: none;
-        }
-        
-        .loading-spinner {
-            display: none;
-            text-align: center;
-            margin-top: 20px;
-        }
-        
-        .spinner {
-            border: 4px solid #f3f3f3;
-            border-top: 4px solid #667eea;
-            border-radius: 50%;
-            width: 40px;
-            height: 40px;
-            animation: spin 1s linear infinite;
-            margin: 0 auto;
-        }
-        
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-        
-        .error-message {
-            background-color: #fee;
-            color: #c33;
-            padding: 12px;
-            border-radius: 8px;
-            margin-top: 15px;
-            display: none;
-            border-left: 4px solid #c33;
-        }
-        
-        .success-message {
-            background-color: #efe;
-            color: #3c3;
-            padding: 12px;
-            border-radius: 8px;
-            margin-top: 15px;
-            display: none;
-            border-left: 4px solid #3c3;
-        }
-        
-        .section {
-            margin-bottom: 40px;
-        }
-        
-        .section h2 {
-            color: #667eea;
-            font-size: 24px;
-            margin-bottom: 20px;
-            padding-bottom: 10px;
-            border-bottom: 3px solid #667eea;
-        }
-        
-        .section h3 {
-            color: #555;
-            font-size: 18px;
-            margin-top: 20px;
-            margin-bottom: 10px;
-        }
-        
-        .summary {
-            background: linear-gradient(135deg, #667eea15 0%, #764ba215 100%);
-            padding: 20px;
-            border-radius: 8px;
-            border-left: 4px solid #667eea;
-            margin-bottom: 30px;
-            font-size: 15px;
-        }
-        
-        .milestone {
-            background: #f9f9f9;
-            padding: 15px;
-            margin-bottom: 12px;
-            border-radius: 8px;
-            border-left: 4px solid #764ba2;
-            transition: transform 0.2s;
-        }
-        
-        .milestone:hover {
-            transform: translateX(5px);
-            background: #f5f5f5;
-        }
-        
-        .project-card {
-            background: #f9f9f9;
-            padding: 20px;
-            margin-bottom: 15px;
-            border-radius: 8px;
-            border-left: 4px solid #667eea;
-        }
-        
-        .project-card h3 {
-            color: #667eea;
-            font-size: 16px;
-            margin-bottom: 8px;
-        }
-        
-        .project-meta {
-            display: flex;
-            gap: 15px;
-            margin-top: 10px;
-        }
-        
-        .meta-item {
-            display: flex;
-            align-items: center;
-            gap: 5px;
-        }
-        
-        .meta-label {
-            font-weight: bold;
-        }
-        
-        .tech-stack {
-            margin-top: 10px;
-        }
-        
-        .tech-tag {
-            display: inline-block;
-            background: #667eea;
-            color: white;
-            padding: 4px 8px;
-            border-radius: 4px;
-            font-size: 12px;
-            margin-right: 5px;
-            margin-bottom: 5px;
-        }
-        
-        .week-schedule {
-            background: #f9f9f9;
-            padding: 15px;
-            margin-bottom: 10px;
-            border-radius: 8px;
-            border-left: 4px solid #764ba2;
-        }
-        
-        .week-title {
-            font-weight: bold;
-            color: #667eea;
-            margin-bottom: 5px;
-        }
-        
-        .resource-item {
-            background: #f9f9f9;
-            padding: 10px;
-            margin-bottom: 8px;
-            border-radius: 8px;
-            border-left: 4px solid #667eea;
-        }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MalumAI | Learning Roadmap Generator</title>
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;600;800&display=swap" rel="stylesheet">
+
+<style>
+:root {
+  --primary: #4f46e5;
+  --secondary: #6366f1;
+  --accent: #22d3ee;
+  --dark: #020617;
+  --light: #f1f5f9;
+  --glass: rgba(255, 255, 255, 0.03);
+  --glass-border: rgba(255, 255, 255, 0.08);
+}
+
+[data-theme="light"] {
+  --dark: #f8fafc;
+  --light: #0f172a;
+  --glass: rgba(15, 23, 42, 0.04);
+  --glass-border: rgba(15, 23, 42, 0.1);
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; font-family: "Plus Jakarta Sans", sans-serif; }
+
+body {
+  background: var(--dark);
+  color: var(--light);
+  overflow-x: hidden;
+  transition: background 0.5s ease, color 0.5s ease;
+}
+
+/* --- ADVANCED BACKGROUND --- */
+.bg-visuals {
+  position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+  z-index: -1;
+  background: radial-gradient(circle at 50% 50%, rgba(99, 102, 241, 0.05), transparent 70%);
+}
+
+.particle {
+  position: absolute; width: 3px; height: 3px; background: var(--accent);
+  border-radius: 50%; opacity: 0.2; animation: move 25s infinite linear;
+}
+
+@keyframes move {
+  0% { transform: translateY(100vh) translateX(0); }
+  100% { transform: translateY(-10vh) translateX(50px); }
+}
+
+/* --- HEADER --- */
+header {
+  position: fixed; top: 0; width: 100%; padding: 20px 6%;
+  display: flex; justify-content: space-between; align-items: center;
+  background: rgba(var(--dark), 0.7); backdrop-filter: blur(15px);
+  border-bottom: 1px solid var(--glass-border); z-index: 1000;
+}
+
+.logo { font-size: 22px; font-weight: 800; color: var(--accent); letter-spacing: -1px; }
+
+.theme-switch { 
+  cursor: pointer; padding: 10px; border-radius: 50%; 
+  background: var(--glass); border: 1px solid var(--glass-border); color: var(--accent);
+}
+
+/* --- HERO --- */
+.hero { min-height: 100vh; display: flex; align-items: center; justify-content: center; text-align: center; padding: 120px 20px 60px; }
+.hero-content { max-width: 800px; width: 100%; }
+
+.hero h1 {
+  font-size: clamp(2rem, 5vw, 3.8rem); font-weight: 800; letter-spacing: -2px; line-height: 1.1;
+  background: linear-gradient(135deg, #fff 20%, var(--accent), var(--secondary));
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+}
+
+[data-theme="light"] .hero h1 { background: linear-gradient(135deg, #0f172a 20%, var(--primary), var(--secondary)); -webkit-background-clip: text; }
+
+.hero p { font-size: 1.15rem; margin: 25px 0 40px; opacity: 0.7; color: var(--light); }
+
+/* --- GLASS FORM --- */
+.ai-form {
+  margin: 0 auto; width: 100%; max-width: 500px; padding: 35px;
+  background: var(--glass); backdrop-filter: blur(12px);
+  border: 1px solid var(--glass-border); border-radius: 24px;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+}
+
+.ai-form input {
+  width: 100%; padding: 16px; margin-bottom: 15px; border-radius: 12px;
+  border: 1px solid var(--glass-border); background: rgba(0,0,0,0.2);
+  color: white; text-align: center; font-size: 1rem; outline: none; transition: 0.3s;
+}
+
+[data-theme="light"] .ai-form input { background: rgba(255,255,255,0.8); color: #000; }
+
+.ai-form input:focus { border-color: var(--accent); box-shadow: 0 0 15px rgba(34, 211, 238, 0.2); }
+
+.cta {
+  background: linear-gradient(45deg, var(--primary), var(--accent));
+  padding: 16px; border-radius: 12px; color: white;
+  font-weight: 700; border: none; cursor: pointer; width: 100%;
+  transition: 0.3s; text-transform: uppercase; letter-spacing: 1px;
+}
+
+.cta:hover { transform: translateY(-2px); filter: brightness(1.1); }
+
+/* --- FROSTED OUTPUT BOX --- */
+#output-section { padding: 80px 8%; }
+.output-container { max-width: 900px; margin: auto; }
+
+.section-title {
+  text-align: center; font-size: 2.2rem; margin-bottom: 40px; font-weight: 800;
+  background: linear-gradient(to right, var(--accent), var(--secondary));
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+}
+
+.output-glass-box {
+  background: var(--glass); backdrop-filter: blur(25px) saturate(180%);
+  padding: 50px; border-radius: 35px; border: 1px solid var(--glass-border);
+  box-shadow: 0 30px 60px rgba(0,0,0,0.4); position: relative;
+}
+
+.output-glass-box::after {
+  content: ""; position: absolute; top: 0; right: 0; width: 150px; height: 150px;
+  background: radial-gradient(circle, rgba(34, 211, 238, 0.08), transparent 70%);
+}
+
+.output-glass-box h3 {
+  color: var(--accent); font-size: 1.1rem; text-transform: uppercase;
+  letter-spacing: 1.5px; margin-bottom: 20px; display: flex; align-items: center; gap: 10px;
+}
+
+.output-text { line-height: 1.8; font-size: 1.05rem; white-space: pre-wrap; }
+
+.divider { height: 1px; background: var(--glass-border); margin: 40px 0; border: none; }
+
+/* --- FEATURE CARDS --- */
+.grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 20px; padding-bottom: 100px; }
+.card {
+  background: var(--glass); padding: 40px; border-radius: 20px;
+  border: 1px solid var(--glass-border); text-align: center;
+  transition: 0.3s; backdrop-filter: blur(5px);
+}
+.card:hover { border-color: var(--accent); transform: translateY(-5px); }
+
+/* --- FOOTER & UTILS --- */
+footer { padding: 60px; text-align: center; opacity: 0.5; border-top: 1px solid var(--glass-border); }
+
+.spinner {
+  border: 3px solid rgba(255,255,255,0.1); border-top: 3px solid var(--accent);
+  border-radius: 50%; width: 24px; height: 24px; display: inline-block;
+  animation: spin 0.8s linear infinite; vertical-align: middle; margin-right: 10px;
+}
+@keyframes spin { 100% { transform: rotate(360deg); } }
+
+</style>
 </head>
+
 <body>
-    <div class="container">
-        <h1>🚀 Learning Roadmap Generator</h1>
-        <p class="subtitle">Create your personalized 12-week learning plan</p>
-        
-        <form id="roadmapForm" method="POST" action="/api_feature/generate-roadmap/">
-            {% csrf_token %}
-            
-            <div class="form-group">
-                <label for="skillset">Current Skillset</label>
-                <input 
-                    type="text" 
-                    id="skillset" 
-                    name="skillset" 
-                    placeholder="e.g., Python basics, HTML/CSS, Git"
-                    required
-                >
-                <p class="help-text">Describe your current technical skills and experience level</p>
-            </div>
-            
-            <div class="form-group">
-                <label for="interest">Area of Interest</label>
-                <textarea 
-                    id="interest" 
-                    name="interest" 
-                    placeholder="e.g., Web Development, Machine Learning, Mobile Apps"
-                    required
-                ></textarea>
-                <p class="help-text">What area or technology interests you the most?</p>
-            </div>
-            
-            <div class="form-group">
-                <label for="goal">Learning Goal</label>
-                <textarea 
-                    id="goal" 
-                    name="goal" 
-                    placeholder="e.g., Build a full-stack web application, Get a junior developer job"
-                    required
-                ></textarea>
-                <p class="help-text">What is your main goal after completing this learning journey?</p>
-            </div>
-            
-            <button type="submit">Generate My Roadmap</button>
-            
-            <div class="loading-spinner" id="loadingSpinner">
-                <div class="spinner"></div>
-                <p style="margin-top: 10px; color: #667eea;">Generating your personalized roadmap...</p>
-            </div>
-            
-            <div class="error-message" id="errorMessage"></div>
-            <div class="success-message" id="successMessage"></div>
-            
-            <div id="resultContainer" style="margin-top:30px;"></div>
-        </form>
+
+<div class="bg-visuals" id="visuals"></div>
+
+<header>
+  <div class="logo"><i class="fa-solid fa-brain"></i> MalumAI</div>
+  <div class="theme-switch" id="theme-btn"><i class="fa-solid fa-moon"></i></div>
+</header>
+
+<section class="hero">
+  <div class="hero-content">
+    <h1>Scaling Human Potential <br> With Agentic Logic</h1>
+    <p>Autonomous project engine designed to provide you a career roadmap</p>
+
+    <form id="form" class="ai-form">
+      {% csrf_token %}
+      <input type="text" id="skillset" placeholder="Core Skills (e.g. Python, SQL)" required>
+      <input type="text" id="interest" placeholder="Domain Interests (e.g. Fintech)" required>
+      <input type="text" id="goal" placeholder="Primary Objective (Optional)">
+      <button type="submit" class="cta">Generate Roadmap</button>
+      <div id="loading" style="margin-top: 20px; font-weight: 600; color: var(--accent);"></div>
+    </form>
+  </div>
+</section>
+
+<section id="output-section">
+  <div class="output-container">
+    <h2 class="section-title">Output</h2>
+
+    <div class="output-glass-box">
+      <div id="project-desc">
+        <h3><i class="fa-solid fa-terminal"></i> System Reasoning</h3>
+        <div class="output-text">
+          <p style="opacity: 0.4; font-style: italic;">Awaiting parameters to calibrate logic chains...</p>
+        </div>
+      </div>
+
+      <hr class="divider">
+
+      <div id="timetable">
+        <h3><i class="fa-solid fa-microchip"></i> Tactical Roadmap</h3>
+        <div class="output-text">
+          <p style="opacity: 0.4; font-style: italic;">Roadmap data visualization pending.</p>
+        </div>
+      </div>
     </div>
+  </div>
+</section>
 
-    <script>
-        const form = document.getElementById('roadmapForm');
-        const loadingSpinner = document.getElementById('loadingSpinner');
-        const errorMessage = document.getElementById('errorMessage');
-        const successMessage = document.getElementById('successMessage');
-        const submitButton = form.querySelector('button[type="submit"]');
+<section>
+  <h2 class="section-title">Core Architecture</h2>
+  <div class="grid">
+    <div class="card">Long-term Memory</div>
+    <div class="card">Autonomous Reasoning</div>
+    <div class="card">Tool Integration</div>
+    <div class="card">Recursive Logic</div>
+  </div>
+</section>
 
-        form.addEventListener('submit', async (e) => {
-            e.preventDefault();
-            
-            // Get form data
-            const skillset = document.getElementById('skillset').value.trim();
-            const interest = document.getElementById('interest').value.trim();
-            const goal = document.getElementById('goal').value.trim();
-            
-            // Validate inputs
-            if (!skillset || !interest || !goal) {
-                showError('Please fill in all fields');
-                return;
-            }
-            
-            // Prepare data
-            const formData = {
-                skillset: skillset,
-                interest: interest,
-                goal: goal
-            };
-            
-            // Get CSRF token
-            const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
-            
-            // Show loading state
-            loadingSpinner.style.display = 'block';
-            errorMessage.style.display = 'none';
-            successMessage.style.display = 'none';
-            submitButton.disabled = true;
-            
-            try {
-                // Send request to API
-                const response = await fetch('/api/generate_roadmap/', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'X-CSRFToken': csrfToken
-                    },
-                    body: JSON.stringify(formData)
-                });
-                
-                const result = await response.json();
-                
-                if (result.success) {
-                    showSuccess('Roadmap generated successfully!');
-                    // Store the roadmap data in sessionStorage
-                    sessionStorage.setItem('roadmapData', JSON.stringify(result.data));
-                    // Display the response in the output textarea
-                    displayResponse(result.data);                    // Scroll into view
-                    document.getElementById('resultContainer').scrollIntoView({ behavior: 'smooth' });                } else {
-                    showError(result.error || 'Failed to generate roadmap');
-                }
-            } catch (error) {
-                console.error('Error:', error);
-                showError('An error occurred: ' + error.message);
-            } finally {
-                loadingSpinner.style.display = 'none';
-                submitButton.disabled = false;
-            }
-        });
-        
-        function showError(message) {
-            errorMessage.textContent = '❌ ' + message;
-            errorMessage.style.display = 'block';
-        }
-        
-        function showSuccess(message) {
-            successMessage.textContent = '✅ ' + message;
-            successMessage.style.display = 'block';
-        }
+<footer>
+  © 2026 MalumAI — Advanced Autonomous Intelligence Platform
+</footer>
 
-        // Display the generated response in structured sections
-        function displayResponse(data) {
-            const container = document.getElementById('resultContainer');
-            let html = '';
+<script>
+// --- Background Particles ---
+const container = document.getElementById('visuals');
+for(let i=0; i<35; i++) {
+  const p = document.createElement('div');
+  p.className = 'particle';
+  p.style.left = Math.random() * 100 + 'vw';
+  p.style.top = Math.random() * 100 + 'vh';
+  p.style.animationDelay = Math.random() * 10 + 's';
+  p.style.animationDuration = (Math.random() * 15 + 15) + 's';
+  container.appendChild(p);
+}
 
-            // Summary
-            if (data.summary) {
-                html += `
-                    <div class="section">
-                        <h2>📌 Summary</h2>
-                        <p>${data.summary}</p>
-                    </div>
-                `;
-            }
+// --- Dark/Light Mode ---
+const themeBtn = document.getElementById('theme-btn');
+themeBtn.addEventListener('click', () => {
+  const isLight = document.body.getAttribute('data-theme') === 'light';
+  document.body.setAttribute('data-theme', isLight ? 'dark' : 'light');
+  themeBtn.innerHTML = isLight ? '<i class="fa-solid fa-moon"></i>' : '<i class="fa-solid fa-sun"></i>';
+});
 
-            // Roadmap/Milestones
-            if (data.roadmap && Array.isArray(data.roadmap)) {
-                html += `<div class="section">
-                    <h2>🎯 Learning Milestones</h2>`;
-                data.roadmap.forEach((milestone, index) => {
-                    html += `<div class="milestone">
-                        <strong>Milestone ${index + 1}:</strong> ${milestone}
-                    </div>`;
-                });
-                html += `</div>`;
-            }
+// --- Backend Connector ---
+document.getElementById("form").addEventListener("submit", async function(e) {
+  e.preventDefault();
 
-            // Projects
-            if (data.projects && Array.isArray(data.projects)) {
-                html += `<div class="section">
-                    <h2>🚀 Hands-On Projects</h2>`;
-                data.projects.forEach((project, index) => {
-                    const projectName = project.name || project.project_name || `Project ${index + 1}`;
-                    const description = project.description || '';
-                    const duration = project.duration_weeks || project.duration || 'N/A';
-                    const techStack = project.tech_stack || project.technologies || [];
-                    
-                    html += `<div class="project-card">
-                        <h3>Project ${index + 1}: ${projectName}</h3>
-                        <p>${description}</p>
-                        <div class="project-meta">
-                            <div class="meta-item">
-                                <span class="meta-label">⏱️ Duration:</span>
-                                <span>${duration} weeks</span>
-                            </div>
-                        </div>`;
-                    
-                    if (Array.isArray(techStack) && techStack.length > 0) {
-                        html += `<div class="tech-stack">`;
-                        techStack.forEach(tech => {
-                            html += `<span class="tech-tag">${tech}</span>`;
-                        });
-                        html += `</div>`;
-                    }
-                    html += `</div>`;
-                });
-                html += `</div>`;
-            }
+  const skillset = document.getElementById("skillset").value;
+  const interest = document.getElementById("interest").value;
+  const goal = document.getElementById("goal").value;
 
-            // Weekly Schedule
-            if (data.weekly_schedule && Array.isArray(data.weekly_schedule)) {
-                html += `<div class="section">
-                    <h2>📅 12-Week Schedule</h2>`;
-                data.weekly_schedule.slice(0, 12).forEach((week, index) => {
-                    const weekNum = index + 1;
-                    const weekContent = typeof week === 'string' ? week : week.tasks || week.description || JSON.stringify(week);
-                    html += `<div class="week-schedule">
-                        <div class="week-title">Week ${weekNum}</div>
-                        <p>${weekContent}</p>
-                    </div>`;
-                });
-                html += `</div>`;
-            }
+  document.getElementById("loading").innerHTML =
+    `<div class="spinner"></div> Engaging Neural Sub-routines...`;
 
-            // Raw GPT Response - parse and section it
-            if (data.raw_response) {
-                const rawText = data.raw_response;
-                const sections = parseRawResponse(rawText);
-                for (const [title, content] of Object.entries(sections)) {
-                    html += `<div class="section">
-                        <h2>${title}</h2>
-                        <p>${content.replace(/\n/g, '<br>')}</p>
-                    </div>`;
-                }
-            }
+  const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
 
-            container.innerHTML = html;
-        }
+  try {
+    const response = await fetch('/api/generate-roadmap/', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-CSRFToken': csrfToken
+      },
+      body: JSON.stringify({ skillset, interest, goal })
+    });
 
-        // Parse raw GPT response into sections
-        function parseRawResponse(text) {
-            const sections = {};
-            const lines = text.split('\n');
-            let currentSection = 'General';
-            let currentContent = '';
+    const result = await response.json();
+    document.getElementById("loading").innerHTML = "";
 
-            for (const line of lines) {
-                const trimmed = line.trim();
-                if (trimmed.match(/^(Summary|Milestones?|Projects?|Schedule|Resources?|Weekly|Roadmap)/i)) {
-                    if (currentContent) {
-                        sections[currentSection] = currentContent.trim();
-                    }
-                    currentSection = trimmed.replace(/:$/, '');
-                    currentContent = '';
-                } else {
-                    currentContent += line + '\n';
-                }
-            }
-            if (currentContent) {
-                sections[currentSection] = currentContent.trim();
-            }
-            return sections;
-        }
-            const printWindow = window.open('', '_blank');
-            const style = `
-                <style>
-                    body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; padding: 20px; }
-                    .project-card, .week-schedule, .resource-item, .milestone { margin-bottom: 12px; }
-                    h2 { color: #667eea; }
-                </style>`;
-            printWindow.document.write('<html><head><title>Roadmap</title>' + style + '</head><body>');
-            printWindow.document.write(htmlContent);
-            printWindow.document.write('</body></html>');
-            printWindow.document.close();
-            printWindow.focus();
-            // Delay to ensure content loads then print
-            setTimeout(() => {
-                printWindow.print();
-                // Optionally close the window after printing
-                // printWindow.close();
-            }, 500);
-        
-    </script>
+    if (result.success) {
+      // Store in sessionStorage
+      sessionStorage.setItem('roadmapData', JSON.stringify(result.data));
+
+      // Populate the output sections
+      populateOutput(result.data);
+
+      // Smooth scroll to results
+      window.scrollTo({
+        top: document.getElementById("output-section").offsetTop - 100,
+        behavior: 'smooth'
+      });
+    } else {
+      document.getElementById("project-desc").innerHTML =
+        `<h3><i class="fa-solid fa-terminal"></i> System Reasoning</h3><div class="output-text">${result.error}</div>`;
+    }
+
+  } catch (error) {
+    document.getElementById("loading").innerHTML =
+      "⚠️ Uplink failed. Ensure your backend server is running.";
+  }
+});
+
+// Function to populate output sections with structured data
+function populateOutput(data) {
+  let reasoning = '';
+  let roadmap = '';
+
+  if (data.summary) {
+    reasoning += `Summary: ${data.summary}\n\n`;
+  }
+
+  if (data.roadmap && Array.isArray(data.roadmap)) {
+    reasoning += 'Learning Milestones:\n';
+    data.roadmap.forEach((milestone, index) => {
+      reasoning += `${index + 1}. ${milestone}\n`;
+    });
+    reasoning += '\n';
+  }
+
+  if (data.resources && Array.isArray(data.resources)) {
+    reasoning += 'Recommended Resources:\n';
+    data.resources.forEach((resource, index) => {
+      const resText = typeof resource === 'string' ? resource : resource.name || resource.title || JSON.stringify(resource);
+      reasoning += `${index + 1}. ${resText}\n`;
+    });
+  }
+
+  if (data.projects && Array.isArray(data.projects)) {
+    roadmap += 'Hands-On Projects:\n';
+    data.projects.forEach((project, index) => {
+      const name = project.name || project.project_name || `Project ${index + 1}`;
+      const desc = project.description || '';
+      const duration = project.duration_weeks || project.duration || 'N/A';
+      roadmap += `${index + 1}. ${name} (${duration} weeks): ${desc}\n`;
+    });
+    roadmap += '\n';
+  }
+
+  if (data.weekly_schedule && Array.isArray(data.weekly_schedule)) {
+    roadmap += '12-Week Schedule:\n';
+    data.weekly_schedule.slice(0, 12).forEach((week, index) => {
+      const weekNum = index + 1;
+      const content = typeof week === 'string' ? week : week.tasks || week.description || JSON.stringify(week);
+      roadmap += `Week ${weekNum}: ${content}\n`;
+    });
+  }
+
+  if (data.raw_response) {
+    const sections = parseRawResponse(data.raw_response);
+    for (const [title, content] of Object.entries(sections)) {
+      if (title.toLowerCase().includes('project') || title.toLowerCase().includes('schedule') || title.toLowerCase().includes('roadmap')) {
+        roadmap += `${title}:\n${content}\n\n`;
+      } else {
+        reasoning += `${title}:\n${content}\n\n`;
+      }
+    }
+  }
+
+  document.getElementById("project-desc").innerHTML =
+    `<h3><i class="fa-solid fa-terminal"></i> System Reasoning</h3><div class="output-text">${reasoning || 'No reasoning data available.'}</div>`;
+
+  document.getElementById("timetable").innerHTML =
+    `<h3><i class="fa-solid fa-microchip"></i> Tactical Roadmap</h3><div class="output-text">${roadmap || 'No roadmap data available.'}</div>`;
+}
+
+// Parse raw GPT response into sections
+function parseRawResponse(text) {
+  const sections = {};
+  const lines = text.split('\n');
+  let currentSection = 'General';
+  let currentContent = '';
+
+  for (const line of lines) {
+    const trimmed = line.trim();
+    if (trimmed.match(/^(Summary|Milestones?|Projects?|Schedule|Resources?|Weekly|Roadmap)/i)) {
+      if (currentContent) {
+        sections[currentSection] = currentContent.trim();
+      }
+      currentSection = trimmed.replace(/:$/, '');
+      currentContent = '';
+    } else {
+      currentContent += line + '\n';
+    }
+  }
+  if (currentContent) {
+    sections[currentSection] = currentContent.trim();
+  }
+  return sections;
+}
+</script>
+
 </body>
 </html>
