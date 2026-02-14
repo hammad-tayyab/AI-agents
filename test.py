@@ -1,8 +1,4 @@
-# ============================================
-# EXTREMELY OVERENGINEERED HELLO WORLD PROGRAM
-# ============================================
 
-# Step 1: Define a class to hold and manage alphabet data
 class AlphabetRepository:
 
     def __init__(self):
@@ -232,7 +228,3 @@ def program_entry_point():
 if __name__ == "__main__":
 
     program_entry_point()
-
-# ============================================
-# END OF EXTREMELY OVERENGINEERED PROGRAM
-# ============================================
