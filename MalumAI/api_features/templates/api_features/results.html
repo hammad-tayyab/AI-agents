@@ -1,0 +1,428 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Your Learning Roadmap</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #f5f7fa;
+            color: #333;
+            line-height: 1.6;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 40px 20px;
+            text-align: center;
+        }
+        
+        .header h1 {
+            font-size: 32px;
+            margin-bottom: 10px;
+        }
+        
+        .container {
+            max-width: 1000px;
+            margin: -20px auto 40px;
+            padding: 0 20px;
+        }
+        
+        .content {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+            padding: 40px;
+        }
+        
+        .section {
+            margin-bottom: 40px;
+        }
+        
+        .section h2 {
+            color: #667eea;
+            font-size: 24px;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 3px solid #667eea;
+        }
+        
+        .section h3 {
+            color: #555;
+            font-size: 18px;
+            margin-top: 20px;
+            margin-bottom: 10px;
+        }
+        
+        .summary {
+            background: linear-gradient(135deg, #667eea15 0%, #764ba215 100%);
+            padding: 20px;
+            border-radius: 8px;
+            border-left: 4px solid #667eea;
+            margin-bottom: 30px;
+            font-size: 15px;
+        }
+        
+        .milestone {
+            background: #f9f9f9;
+            padding: 15px;
+            margin-bottom: 12px;
+            border-radius: 8px;
+            border-left: 4px solid #764ba2;
+            transition: transform 0.2s;
+        }
+        
+        .milestone:hover {
+            transform: translateX(5px);
+            background: #f5f5f5;
+        }
+        
+        .project-card {
+            background: #f9f9f9;
+            padding: 20px;
+            margin-bottom: 15px;
+            border-radius: 8px;
+            border-left: 4px solid #667eea;
+        }
+        
+        .project-card h4 {
+            color: #667eea;
+            font-size: 16px;
+            margin-bottom: 8px;
+        }
+        
+        .project-meta {
+            display: flex;
+            gap: 20px;
+            margin-top: 10px;
+            flex-wrap: wrap;
+        }
+        
+        .meta-item {
+            display: flex;
+            align-items: center;
+            font-size: 13px;
+            color: #666;
+        }
+        
+        .meta-label {
+            font-weight: 600;
+            color: #333;
+            margin-right: 5px;
+        }
+        
+        .tech-stack {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            margin-top: 10px;
+        }
+        
+        .tech-tag {
+            background: #667eea;
+            color: white;
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 500;
+        }
+        
+        .week-schedule {
+            background: #f9f9f9;
+            padding: 15px;
+            margin-bottom: 12px;
+            border-radius: 8px;
+            border-left: 4px solid #764ba2;
+        }
+        
+        .week-title {
+            font-weight: 600;
+            color: #667eea;
+            margin-bottom: 8px;
+        }
+        
+        .resource-item {
+            background: #f9f9f9;
+            padding: 12px;
+            margin-bottom: 10px;
+            border-radius: 6px;
+        }
+        
+        .resource-item a {
+            color: #667eea;
+            text-decoration: none;
+            font-weight: 500;
+        }
+        
+        .resource-item a:hover {
+            text-decoration: underline;
+        }
+        
+        .button-group {
+            display: flex;
+            gap: 15px;
+            margin-top: 30px;
+            flex-wrap: wrap;
+        }
+        
+        button {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
+        }
+        
+        .btn-secondary {
+            background: #f0f0f0;
+            color: #333;
+            border: 2px solid #ddd;
+        }
+        
+        .btn-secondary:hover {
+            background: #e8e8e8;
+        }
+        
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+        }
+        
+        .empty-icon {
+            font-size: 48px;
+            margin-bottom: 20px;
+        }
+        
+        .empty-state h2 {
+            color: #667eea;
+            margin-bottom: 10px;
+        }
+        
+        .empty-state p {
+            color: #999;
+            margin-bottom: 30px;
+        }
+        
+        .loading-state {
+            text-align: center;
+            padding: 60px 20px;
+        }
+        
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #667eea;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .error-state {
+            background: #fee;
+            color: #c33;
+            padding: 30px;
+            border-radius: 8px;
+            border-left: 4px solid #c33;
+            text-align: center;
+        }
+        
+        @media (max-width: 768px) {
+            .container {
+                margin-top: -10px;
+            }
+            
+            .content {
+                padding: 20px;
+            }
+            
+            .button-group {
+                flex-direction: column;
+            }
+            
+            button {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>📚 Your Personalized Learning Roadmap</h1>
+        <p>12-Week Journey to Your Goal</p>
+    </div>
+
+    <div class="container">
+        <div class="content" id="content">
+            <div class="loading-state">
+                <div class="spinner"></div>
+                <p>Loading your roadmap...</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Retrieve data from sessionStorage
+        const roadmapData = sessionStorage.getItem('roadmapData');
+        const contentDiv = document.getElementById('content');
+
+        if (!roadmapData) {
+            contentDiv.innerHTML = `
+                <div class="empty-state">
+                    <div class="empty-icon">📋</div>
+                    <h2>No Roadmap Generated</h2>
+                    <p>Please go back and generate a roadmap first</p>
+                    <button class="btn-primary" onclick="window.location.href='/api/'">
+                        Go Back to Generator
+                    </button>
+                </div>
+            `;
+        } else {
+            try {
+                const data = JSON.parse(roadmapData);
+                displayRoadmap(data);
+            } catch (error) {
+                contentDiv.innerHTML = `
+                    <div class="error-state">
+                        <h3>Error Loading Roadmap</h3>
+                        <p>${error.message}</p>
+                        <button class="btn-primary" onclick="window.location.href='/api/'" style="margin-top: 20px; width: auto; display: inline-block;">
+                            Go Back
+                        </button>
+                    </div>
+                `;
+            }
+        }
+
+        function displayRoadmap(data) {
+            let html = '';
+
+            // Summary
+            if (data.summary) {
+                html += `
+                    <div class="summary">
+                        <strong>📌 Summary:</strong> ${data.summary}
+                    </div>
+                `;
+            }
+
+            // Roadmap/Milestones
+            if (data.roadmap && Array.isArray(data.roadmap)) {
+                html += `<div class="section">
+                    <h2>🎯 Learning Milestones</h2>`;
+                data.roadmap.forEach((milestone, index) => {
+                    html += `<div class="milestone">
+                        <strong>Milestone ${index + 1}:</strong> ${milestone}
+                    </div>`;
+                });
+                html += `</div>`;
+            }
+
+            // Projects
+            if (data.projects && Array.isArray(data.projects)) {
+                html += `<div class="section">
+                    <h2>🚀 Hands-On Projects</h2>`;
+                data.projects.forEach((project, index) => {
+                    const projectName = project.name || project.project_name || `Project ${index + 1}`;
+                    const description = project.description || '';
+                    const duration = project.duration_weeks || project.duration || 'N/A';
+                    const techStack = project.tech_stack || project.technologies || [];
+                    
+                    html += `<div class="project-card">
+                        <h4>Project ${index + 1}: ${projectName}</h4>
+                        <p>${description}</p>
+                        <div class="project-meta">
+                            <div class="meta-item">
+                                <span class="meta-label">⏱️ Duration:</span>
+                                <span>${duration} weeks</span>
+                            </div>
+                        </div>`;
+                    
+                    if (Array.isArray(techStack) && techStack.length > 0) {
+                        html += `<div class="tech-stack">`;
+                        techStack.forEach(tech => {
+                            html += `<span class="tech-tag">${tech}</span>`;
+                        });
+                        html += `</div>`;
+                    }
+                    html += `</div>`;
+                });
+                html += `</div>`;
+            }
+
+            // Weekly Schedule
+            if (data.weekly_schedule && Array.isArray(data.weekly_schedule)) {
+                html += `<div class="section">
+                    <h2>📅 12-Week Schedule</h2>`;
+                data.weekly_schedule.slice(0, 12).forEach((week, index) => {
+                    const weekNum = index + 1;
+                    const weekContent = typeof week === 'string' ? week : week.tasks || week.description || JSON.stringify(week);
+                    html += `<div class="week-schedule">
+                        <div class="week-title">Week ${weekNum}</div>
+                        <p>${weekContent}</p>
+                    </div>`;
+                });
+                html += `</div>`;
+            }
+
+            // Resources
+            if (data.resources && Array.isArray(data.resources)) {
+                html += `<div class="section">
+                    <h2>📖 Recommended Resources</h2>`;
+                data.resources.forEach((resource, index) => {
+                    const resourceText = typeof resource === 'string' ? resource : resource.name || resource.title || JSON.stringify(resource);
+                    html += `<div class="resource-item">
+                        ${index + 1}. ${resourceText}
+                    </div>`;
+                });
+                html += `</div>`;
+            }
+
+            // Raw GPT Response
+            if (data.raw_response) {
+                html += `<div class="section">
+                    <h2>🤖 Raw GPT Response</h2>
+                    <pre style="white-space: pre-wrap; background: #f9f9f9; padding: 15px; border-radius: 8px; border: 1px solid #ddd;">${data.raw_response}</pre>
+                </div>`;
+            }
+
+            // Action Buttons
+            html += `<div class="button-group">
+                <button class="btn-primary" onclick="printRoadmap()">📥 Download as PDF</button>
+                <button class="btn-secondary" onclick="window.location.href='/api/'">↩️ Create New Roadmap</button>
+            </div>`;
+
+            contentDiv.innerHTML = html;
+        }
+
+        function printRoadmap() {
+            window.print();
+        }
+    </script>
+</body>
+</html>
