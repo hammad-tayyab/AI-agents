@@ -1,0 +1,420 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Learning Roadmap Generator</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+        
+        .container {
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            padding: 40px;
+            max-width: 600px;
+            width: 100%;
+        }
+        
+        h1 {
+            color: #333;
+            margin-bottom: 10px;
+            text-align: center;
+            font-size: 28px;
+        }
+        
+        .subtitle {
+            color: #666;
+            text-align: center;
+            margin-bottom: 30px;
+            font-size: 14px;
+        }
+        
+        .form-group {
+            margin-bottom: 25px;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: #333;
+            font-weight: 600;
+            font-size: 14px;
+        }
+        
+        input[type="text"],
+        textarea {
+            width: 100%;
+            padding: 12px 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-family: inherit;
+            font-size: 14px;
+            transition: border-color 0.3s;
+        }
+        
+        input[type="text"]:focus,
+        textarea:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+        
+        textarea {
+            resize: vertical;
+            min-height: 80px;
+            font-family: inherit;
+        }
+        
+        .help-text {
+            font-size: 12px;
+            color: #999;
+            margin-top: 5px;
+        }
+        
+        button {
+            width: 100%;
+            padding: 14px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
+        }
+        
+        button:active {
+            transform: translateY(0);
+        }
+        
+        button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        .loading-spinner {
+            display: none;
+            text-align: center;
+            margin-top: 20px;
+        }
+        
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #667eea;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .error-message {
+            background-color: #fee;
+            color: #c33;
+            padding: 12px;
+            border-radius: 8px;
+            margin-top: 15px;
+            display: none;
+            border-left: 4px solid #c33;
+        }
+        
+        .success-message {
+            background-color: #efe;
+            color: #3c3;
+            padding: 12px;
+            border-radius: 8px;
+            margin-top: 15px;
+            display: none;
+            border-left: 4px solid #3c3;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🚀 Learning Roadmap Generator</h1>
+        <p class="subtitle">Create your personalized 12-week learning plan</p>
+        
+        <form id="roadmapForm" method="POST" action="/api_feature/generate-roadmap/">
+            {% csrf_token %}
+            
+            <div class="form-group">
+                <label for="skillset">Current Skillset</label>
+                <input 
+                    type="text" 
+                    id="skillset" 
+                    name="skillset" 
+                    placeholder="e.g., Python basics, HTML/CSS, Git"
+                    required
+                >
+                <p class="help-text">Describe your current technical skills and experience level</p>
+            </div>
+            
+            <div class="form-group">
+                <label for="interest">Area of Interest</label>
+                <textarea 
+                    id="interest" 
+                    name="interest" 
+                    placeholder="e.g., Web Development, Machine Learning, Mobile Apps"
+                    required
+                ></textarea>
+                <p class="help-text">What area or technology interests you the most?</p>
+            </div>
+            
+            <div class="form-group">
+                <label for="goal">Learning Goal</label>
+                <textarea 
+                    id="goal" 
+                    name="goal" 
+                    placeholder="e.g., Build a full-stack web application, Get a junior developer job"
+                    required
+                ></textarea>
+                <p class="help-text">What is your main goal after completing this learning journey?</p>
+            </div>
+            
+            <button type="submit">Generate My Roadmap</button>
+            
+            <div class="loading-spinner" id="loadingSpinner">
+                <div class="spinner"></div>
+                <p style="margin-top: 10px; color: #667eea;">Generating your personalized roadmap...</p>
+            </div>
+            
+            <div class="error-message" id="errorMessage"></div>
+            <div class="success-message" id="successMessage"></div>
+            <div id="resultContainer" style="margin-top:30px;"></div>
+        </form>
+    </div>
+
+    <script>
+        const form = document.getElementById('roadmapForm');
+        const loadingSpinner = document.getElementById('loadingSpinner');
+        const errorMessage = document.getElementById('errorMessage');
+        const successMessage = document.getElementById('successMessage');
+        const submitButton = form.querySelector('button[type="submit"]');
+
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            // Get form data
+            const skillset = document.getElementById('skillset').value.trim();
+            const interest = document.getElementById('interest').value.trim();
+            const goal = document.getElementById('goal').value.trim();
+            
+            // Validate inputs
+            if (!skillset || !interest || !goal) {
+                showError('Please fill in all fields');
+                return;
+            }
+            
+            // Prepare data
+            const formData = {
+                skillset: skillset,
+                interest: interest,
+                goal: goal
+            };
+            
+            // Get CSRF token
+            const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+            
+            // Show loading state
+            loadingSpinner.style.display = 'block';
+            errorMessage.style.display = 'none';
+            successMessage.style.display = 'none';
+            submitButton.disabled = true;
+            
+            try {
+                // Send request to API
+                const response = await fetch('/api/generate-roadmap/', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': csrfToken
+                    },
+                    body: JSON.stringify(formData)
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    showSuccess('Roadmap generated successfully!');
+                    // Render the returned roadmap directly on the same page
+                    renderResults(result.data);
+                    // Scroll into view
+                    document.getElementById('resultContainer').scrollIntoView({ behavior: 'smooth' });
+                } else {
+                    showError(result.error || 'Failed to generate roadmap');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                showError('An error occurred: ' + error.message);
+            } finally {
+                loadingSpinner.style.display = 'none';
+                submitButton.disabled = false;
+            }
+        });
+        
+        function showError(message) {
+            errorMessage.textContent = '❌ ' + message;
+            errorMessage.style.display = 'block';
+        }
+        
+        function showSuccess(message) {
+            successMessage.textContent = '✅ ' + message;
+            successMessage.style.display = 'block';
+        }
+
+        // Render results into the page (structure similar to results.html)
+        function renderResults(data) {
+            const container = document.getElementById('resultContainer');
+            let html = '';
+
+            // Summary
+            if (data.summary) {
+                html += `
+                    <div class="summary">
+                        <strong>📌 Summary:</strong> ${data.summary}
+                    </div>
+                `;
+            }
+
+            // Roadmap/Milestones
+            if (data.roadmap && Array.isArray(data.roadmap)) {
+                html += `<div class="section">
+                    <h2>🎯 Learning Milestones</h2>`;
+                data.roadmap.forEach((milestone, index) => {
+                    html += `<div class="milestone">
+                        <strong>Milestone ${index + 1}:</strong> ${milestone}
+                    </div>`;
+                });
+                html += `</div>`;
+            }
+
+            // Projects
+            if (data.projects && Array.isArray(data.projects)) {
+                html += `<div class="section">
+                    <h2>🚀 Hands-On Projects</h2>`;
+                data.projects.forEach((project, index) => {
+                    const projectName = project.name || project.project_name || `Project ${index + 1}`;
+                    const description = project.description || '';
+                    const duration = project.duration_weeks || project.duration || 'N/A';
+                    const techStack = project.tech_stack || project.technologies || [];
+                    
+                    html += `<div class="project-card">
+                        <h4>Project ${index + 1}: ${projectName}</h4>
+                        <p>${description}</p>
+                        <div class="project-meta">
+                            <div class="meta-item">
+                                <span class="meta-label">⏱️ Duration:</span>
+                                <span>${duration} weeks</span>
+                            </div>
+                        </div>`;
+                    
+                    if (Array.isArray(techStack) && techStack.length > 0) {
+                        html += `<div class="tech-stack">`;
+                        techStack.forEach(tech => {
+                            html += `<span class="tech-tag">${tech}</span>`;
+                        });
+                        html += `</div>`;
+                    }
+                    html += `</div>`;
+                });
+                html += `</div>`;
+            }
+
+            // Weekly Schedule
+            if (data.weekly_schedule && Array.isArray(data.weekly_schedule)) {
+                html += `<div class="section">
+                    <h2>📅 12-Week Schedule</h2>`;
+                data.weekly_schedule.slice(0, 12).forEach((week, index) => {
+                    const weekNum = index + 1;
+                    const weekContent = typeof week === 'string' ? week : week.tasks || week.description || JSON.stringify(week);
+                    html += `<div class="week-schedule">
+                        <div class="week-title">Week ${weekNum}</div>
+                        <p>${weekContent}</p>
+                    </div>`;
+                });
+                html += `</div>`;
+            }
+
+            // Resources
+            if (data.resources && Array.isArray(data.resources)) {
+                html += `<div class="section">
+                    <h2>📖 Recommended Resources</h2>`;
+                data.resources.forEach((resource, index) => {
+                    const resourceText = typeof resource === 'string' ? resource : resource.name || resource.title || JSON.stringify(resource);
+                    html += `<div class="resource-item">
+                        ${index + 1}. ${resourceText}
+                    </div>`;
+                });
+                html += `</div>`;
+            }
+
+            // Action Buttons (download and reset)
+            html += `<div class="button-group" style="margin-top:20px;">
+                <button class="btn-primary" id="downloadPdfBtn">📥 Download as PDF</button>
+                <button class="btn-secondary" id="createNewBtn">↩️ Create New Roadmap</button>
+            </div>`;
+
+            container.innerHTML = html;
+
+            // Attach actions
+            document.getElementById('downloadPdfBtn').addEventListener('click', function() {
+                downloadRoadmapPdf(container.innerHTML);
+            });
+            document.getElementById('createNewBtn').addEventListener('click', function() {
+                // Clear results and form
+                container.innerHTML = '';
+                successMessage.style.display = 'none';
+            });
+        }
+
+        // Open a new window with only the results content and print (user can save as PDF)
+        function downloadRoadmapPdf(htmlContent) {
+            const printWindow = window.open('', '_blank');
+            const style = `
+                <style>
+                    body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; padding: 20px; }
+                    .project-card, .week-schedule, .resource-item, .milestone { margin-bottom: 12px; }
+                    h2 { color: #667eea; }
+                </style>`;
+            printWindow.document.write('<html><head><title>Roadmap</title>' + style + '</head><body>');
+            printWindow.document.write(htmlContent);
+            printWindow.document.write('</body></html>');
+            printWindow.document.close();
+            printWindow.focus();
+            // Delay to ensure content loads then print
+            setTimeout(() => {
+                printWindow.print();
+                // Optionally close the window after printing
+                // printWindow.close();
+            }, 500);
+        }
+    </script>
+</body>
+</html>
