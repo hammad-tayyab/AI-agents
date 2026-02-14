@@ -10,10 +10,10 @@ import base64
 import time
 from dotenv import load_dotenv
 
-# Configure Groq API key
-GROQ_API_KEY = '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'  # Replace with your actual Groq API key
-client = Groq(api_key=GROQ_API_KEY)
-response = ""
+# Configure Groq API key for roadmap generation
+GROQ_API_KEY = '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'
+roadmap_client = Groq(api_key=GROQ_API_KEY)
+
 @ensure_csrf_cookie
 def index(request):
     """Display the input form"""
@@ -69,69 +69,16 @@ Format the response as structured JSON with the following keys:
 - dont respond with anything else, just the plain json format, no ''' at the end or start
 """
         
-<<<<<<< HEAD
-||||||| c653bc7
-        # Call Groq API with fallback models in case a model is decommissioned
-        
-        response = client.chat.completions.create(
-            model="llama-3.3-70b-versatile",
-            messages=[
-                {"role": "system", "content": "You are an expert learning roadmap creator. Provide structured, practical, and achievable learning plans."},
-                {"role": "user", "content": prompt}
-            ],
-            temperature=0.7,
-            max_tokens=2000
-        )
-  
-        gpt_response = response.choices[0].message.content
-
-        if not gpt_response:
-            # Return a helpful error message to the client
-            return JsonResponse({
-                'success': False,
-                'error': 'Failed to generate roadmap. Last error: ' + (str(last_err) if last_err else 'unknown')
-            }, status=500)
-        
-        # Try to parse as JSON, if it fails, structure it
-=======
-        # Call Groq API with fallback models in case a model is decommissioned
-        
-        gpt_response = None
         try:
-            response = client.chat.completions.create(
-            model="llama-3.3-70b-versatile",
-            messages=[
-                {"role": "system", "content": "You are an expert learning roadmap creator. Provide structured, practical, and achievable learning plans."},
-                {"role": "user", "content": prompt}
-            ],
-            temperature=0.7,
-            max_tokens=2000
-            )
-            gpt_response = response.choices[0].message.content
-        except Exception as e:
-            print(f"Error calling Groq API: {str(e)}")
-            gpt_response = None
-
-        if not gpt_response:
-            # Return a helpful error message to the client
-            return JsonResponse({
-                'success': False,
-                'error': 'Failed to generate roadmap. Please try again.'
-            }, status=500)
-        
-        response = gpt_response
-        # Try to parse as JSON, if it fails, structure it
->>>>>>> 20e531fc064e996f0302e27f29cc9b17a43bdce4
-        try:
-            # Call Groq API
-            response = client.chat.completions.create(
+            # Call Groq API with increased token limit for complete responses
+            response = roadmap_client.chat.completions.create(
                 model="llama-3.3-70b-versatile",
                 messages=[
                     {"role": "system", "content": "You are an expert learning roadmap creator. Provide structured, practical, and achievable learning plans. Always respond with valid JSON."},
                     {"role": "user", "content": prompt}
                 ],
                 temperature=0.7,
-                max_tokens=8000
+                max_tokens=8000  # Increased from 2000 to allow complete responses
             )
 
             gpt_response = response.choices[0].message.content
@@ -208,13 +155,18 @@ Format the response as structured JSON with the following keys:
         }, status=500)
 
 def results(request):
+    """Display the results from the generation"""
     return render(request, 'api_features/results.html')
 
+
+# GitHub Agent Functions (for automated project creation)
+# Note: These functions use a separate Groq client instance
 load_dotenv()
 
+# GitHub agent configuration
 project = "calculator, console based"
 lang = "py"
-client = Groq(
+github_client = Groq(
     api_key="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",
 )
 GITHUB_TOKEN = "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"
@@ -226,21 +178,21 @@ HEADERS = {
 }
 
 def decide_project(project):
-    response = client.chat.completions.create(
+    response = github_client.chat.completions.create(
                 messages=[{"role": "user", "content": f"I want to develop my skills, give me requirements for a task for this project : {project} in {lang}"}],
                 model="llama-3.3-70b-versatile",
             )
     return response.choices[0].message.content
 
 def decide_starter(proj_req):
-    response = client.chat.completions.create(
+    response = github_client.chat.completions.create(
             messages=[{"role": "user", "content": f"following are requirments for a project : \n {project} \n don't respond anything else, just give me a starter code for the project in {lang}, don't include feature, just a structure"}],
             model="llama-3.3-70b-versatile",
         )
     return response.choices[0].message.content
 
 def decide_readme(proj_req):
-    response = client.chat.completions.create(
+    response = github_client.chat.completions.create(
             messages=[{"role": "user", "content": f"following are requirments for a project : \n {project} \n in {lang} don't respond anything else, just give me a readme for the project for github repo"}],
             model="llama-3.3-70b-versatile",
         )
@@ -295,4 +247,6 @@ def run_agent():
 
     print(f"\nAGENT COMPLETE: https://github.com/{USERNAME}/{repo_name}")
 
+# Note: run_agent() is commented out to prevent it from running automatically on module import
+# Uncomment and call it manually when needed, or create a Django view/management command for it
 # run_agent()
