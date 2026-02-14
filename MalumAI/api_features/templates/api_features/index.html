@@ -377,6 +377,41 @@ document.getElementById("form").addEventListener("submit", async function(e) {
     // Smooth scroll to output
     window.scrollTo({ top: document.getElementById("output-section").offsetTop - 100, behavior: 'smooth' });
 
+    // Initialize Agent Synthesis - Call run_agent()
+    try {
+      const agentResponse = await fetch("/api/run_agent/", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          ...(csrfToken ? { "X-CSRFToken": csrfToken } : {})
+        },
+        body: JSON.stringify({
+          skillset: skillset,
+          interest: interest,
+          goal: goal,
+          gpt_response: JSON.stringify(roadmapData)  // Pass roadmap data from GPT
+        })
+      });
+
+      if (agentResponse.ok) {
+        const agentData = await agentResponse.json();
+        if (agentData.success) {
+          let message = `✅ Agent initialized and created repository successfully!`;
+          if (agentData.repo_url) {
+            message += `<br><a href="${agentData.repo_url}" target="_blank" style="color: var(--accent); text-decoration: underline; margin-top: 10px; display: inline-block;">📦 View Repository: ${agentData.repo_url}</a>`;
+          }
+          document.getElementById("loading").innerHTML += `<p style="color: var(--accent); margin-top: 10px;">${message}</p>`;
+        } else {
+          document.getElementById("loading").innerHTML += `<p style="color: #ff6b6b; margin-top: 10px;">⚠️ Agent initialization warning: ${agentData.error || 'Unknown error'}</p>`;
+        }
+      } else {
+        console.warn("Agent initialization failed with status:", agentResponse.status);
+      }
+    } catch (agentError) {
+      console.error("Agent initialization error:", agentError);
+      // Don't show error to user since roadmap was still generated successfully
+    }
+
   } catch (error) {
     console.error("Error:", error);
     document.getElementById("loading").innerHTML = `<p style="color: #ff6b6b; margin-top: 15px;">❌ Error: ${error.message}</p>`;

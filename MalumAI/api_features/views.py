@@ -49,25 +49,40 @@ def generate_roadmap(request):
         # Create the prompt for GPT
         prompt = f"""Based on the following user profile, create a detailed learning roadmap:
 
+
 Current Skillset: {skillset}
+
 Area of Interest: {interest}
+
 Learning Goal: {goal if goal else 'General learning and skill development'}
 
-Please provide:
+
+Must provide:
+
 1. A personalized learning path with 5-7 key milestones
+
 2. 3-5 practical projects the user should complete (with project names and brief descriptions)
+
 3. An estimated timeline in weeks for each project
+
 4. Resources and tech stack recommendations
+
 5. A weekly schedule/timetable for the next 12 weeks
 
-Format the response as structured JSON with the following keys:
-- "roadmap" (array of milestones)
+
+Strictly Format the response as structured JSON with the following keys:
+
+- "milestone" (array of milestones)
+
 - "projects" (array of projects with name, description, duration_weeks, tech_stack)
+
 - "weekly_schedule" (array of 12 weeks with tasks)
+
 - "resources" (array of recommended resources)
+
 - "summary" (brief overview of the plan)
-- dont respond with anything else, just the plain json format, no ''' at the end or start
-"""
+
+NOTE: dont respond with anything else, just the plain json format, no ''' at the end or start, no empty json values"""
         
         try:
             # Call Groq API with increased token limit for complete responses
@@ -158,6 +173,36 @@ def results(request):
     """Display the results from the generation"""
     return render(request, 'api_features/results.html')
 
+@require_http_methods(["POST"])
+def run_agent_endpoint(request):
+    """
+    API endpoint to initialize and run the agent
+    Creates a GitHub repository with AI-generated project files
+    """
+    try:
+        # Get user inputs from request
+        try:
+            data = json.loads(request.body)
+        except:
+            data = {}
+        
+        skillset = data.get('skillset', 'general programming')
+        interest = data.get('interest', 'software development')
+        goal = data.get('goal', 'skill development')
+        gpt_response = data.get('gpt_response', '')  # Roadmap data from GPT
+        
+        repo_url = run_agent(skillset, interest, goal, gpt_response)
+        return JsonResponse({
+            'success': True,
+            'message': 'Agent synthesis initiated successfully',
+            'repo_url': repo_url
+        })
+    except Exception as e:
+        return JsonResponse({
+            'success': False,
+            'error': f'Agent execution failed: {str(e)}'
+        }, status=500)
+
 
 # GitHub Agent Functions (for automated project creation)
 # Note: These functions use a separate Groq client instance
@@ -165,35 +210,111 @@ load_dotenv()
 
 # GitHub agent configuration
 project = "calculator, console based"
-lang = "py"
+language = "py"
 github_client = Groq(
     api_key="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",
 )
-GITHUB_TOKEN = "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"
-USERNAME = "ABUHURAIRA114"
+GITHUB_TOKEN = "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"
+USERNAME = "Sad0Bro"
 
 HEADERS = {
     "Authorization": f"token {GITHUB_TOKEN}",
     "Accept": "application/vnd.github+json"
 }
 
-def decide_project(project):
+def get_name(proj):
     response = github_client.chat.completions.create(
-                messages=[{"role": "user", "content": f"I want to develop my skills, give me requirements for a task for this project : {project} in {lang}"}],
+                messages=[{"role": "user", "content": f"I am working on a project {proj}, suggest me a name, don't say anything else just the suggested name"}],
                 model="llama-3.3-70b-versatile",
             )
     return response.choices[0].message.content
 
-def decide_starter(proj_req):
+def get_project(gpt_response):
     response = github_client.chat.completions.create(
-            messages=[{"role": "user", "content": f"following are requirments for a project : \n {project} \n don't respond anything else, just give me a starter code for the project in {lang}, don't include feature, just a structure"}],
+                messages=[{"role": "user", "content": f"I asked AI to give me a road map and it gave me {gpt_response}, extract the first recommended project and give me, nothing else, just the project and it's req "}],
+                model="llama-3.3-70b-versatile",
+            )
+    return response.choices[0].message.content
+
+def get_lang(proj):
+    response = github_client.chat.completions.create(
+                messages=[{"role": "user", "content": f"{proj} is a project i want to work on, don't say anything else just give me the extension of the language that is going to be used, give me only one"}],
+                model="llama-3.3-70b-versatile",
+            )
+    return response.choices[0].message.content
+
+def decide_project(skillset, interest, goal):
+    # Generate project idea based on user's profile
+    prompt = f"Based on the user's skillset ({skillset}), interest ({interest}), and goal ({goal}), suggest a specific project to build. Keep it concise and practical."
+    response = github_client.chat.completions.create(
+                messages=[{"role": "user", "content": prompt}],
+                model="llama-3.3-70b-versatile",
+            )
+    return response.choices[0].message.content
+
+def decide_starter(proj_req, lang):
+    response = github_client.chat.completions.create(
+            messages=[{"role": "user", "content": f"following is the project requirement: \n {proj_req} \n don't respond anything else, just give me a starter code for the project in {lang}, don't include features, just a basic structure and dont include '''{lang} at start or end"}],
             model="llama-3.3-70b-versatile",
         )
     return response.choices[0].message.content
 
-def decide_readme(proj_req):
+def decide_readme(proj_req, lang):
     response = github_client.chat.completions.create(
-            messages=[{"role": "user", "content": f"following are requirments for a project : \n {project} \n in {lang} don't respond anything else, just give me a readme for the project for github repo"}],
+            messages=[{"role": "user", "content": f"""You are an expert software engineer and technical writer.
+
+Write a complete, professional GitHub README.md file based on the following inputs:
+
+Project Requirements: {proj_req}
+Programming Language: {lang}
+
+REQUIREMENTS
+
+The README must include these sections in this exact order:
+
+Project Title
+
+Description
+
+Features
+
+Tech Stack
+
+Installation Instructions
+
+Usage Examples
+
+Project Structure
+
+Configuration (if applicable)
+
+Testing Instructions (if applicable)
+
+Future Improvements
+
+Contributing Guidelines
+
+License
+
+STYLE RULES
+
+Make the README realistic and tailored to the project requirements.
+
+Assume the reader is a developer who wants to run the project.
+
+Include example commands and code snippets when helpful.
+
+Use clear markdown formatting with headings and bullet points.
+
+If information is missing, make reasonable assumptions.
+
+Do NOT include explanations outside the README content.
+
+OUTPUT RULES
+
+Return ONLY the README content in markdown format.
+Do NOT add commentary before or after.
+Do NOT use code block fences around the entire README."""}],
             model="llama-3.3-70b-versatile",
         )
     return response.choices[0].message.content
@@ -230,22 +351,28 @@ def create_file(repo_name, file_name, content, retries=3):
         time.sleep(2)
     return False
 
-def run_agent():
-    repo_name = f"ai-agent-project-{int(time.time())}"
-    
-    if create_repository(repo_name, "Malum AI Agent Project"):
+def run_agent(skillset, interest, goal, gpt_response=''):
+    proj = get_project(gpt_response) if gpt_response else decide_project(skillset, interest, goal)
+    lang = get_lang(proj)
+    name = get_name(proj)
+    repo_name = f"{name}-{int(time.time())}"
+    repo_url = f"https://github.com/{USERNAME}/{repo_name}"
+
+    # Extract project from GPT response
+    if create_repository(repo_name, f"AI Agent Project - {interest}"):
         time.sleep(5) 
         
         files = {
-            "README.md": decide_readme(decide_project(project)),
-            f"main.{lang}": decide_starter(decide_project(project))
+            "README.md": decide_readme(proj, lang),
+            f"main{lang}": decide_starter(proj, lang)
         }
 
         for name, content in files.items():
             create_file(repo_name, name, content)
             time.sleep(1)
 
-    print(f"\nAGENT COMPLETE: https://github.com/{USERNAME}/{repo_name}")
+    print(f"\nAGENT COMPLETE: {repo_url}")
+    return repo_url
 
 # Note: run_agent() is commented out to prevent it from running automatically on module import
 # Uncomment and call it manually when needed, or create a Django view/management command for it
