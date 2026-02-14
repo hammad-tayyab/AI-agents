@@ -154,6 +154,115 @@
             display: none;
             border-left: 4px solid #3c3;
         }
+        
+        .section {
+            margin-bottom: 40px;
+        }
+        
+        .section h2 {
+            color: #667eea;
+            font-size: 24px;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 3px solid #667eea;
+        }
+        
+        .section h3 {
+            color: #555;
+            font-size: 18px;
+            margin-top: 20px;
+            margin-bottom: 10px;
+        }
+        
+        .summary {
+            background: linear-gradient(135deg, #667eea15 0%, #764ba215 100%);
+            padding: 20px;
+            border-radius: 8px;
+            border-left: 4px solid #667eea;
+            margin-bottom: 30px;
+            font-size: 15px;
+        }
+        
+        .milestone {
+            background: #f9f9f9;
+            padding: 15px;
+            margin-bottom: 12px;
+            border-radius: 8px;
+            border-left: 4px solid #764ba2;
+            transition: transform 0.2s;
+        }
+        
+        .milestone:hover {
+            transform: translateX(5px);
+            background: #f5f5f5;
+        }
+        
+        .project-card {
+            background: #f9f9f9;
+            padding: 20px;
+            margin-bottom: 15px;
+            border-radius: 8px;
+            border-left: 4px solid #667eea;
+        }
+        
+        .project-card h3 {
+            color: #667eea;
+            font-size: 16px;
+            margin-bottom: 8px;
+        }
+        
+        .project-meta {
+            display: flex;
+            gap: 15px;
+            margin-top: 10px;
+        }
+        
+        .meta-item {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        
+        .meta-label {
+            font-weight: bold;
+        }
+        
+        .tech-stack {
+            margin-top: 10px;
+        }
+        
+        .tech-tag {
+            display: inline-block;
+            background: #667eea;
+            color: white;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            margin-right: 5px;
+            margin-bottom: 5px;
+        }
+        
+        .week-schedule {
+            background: #f9f9f9;
+            padding: 15px;
+            margin-bottom: 10px;
+            border-radius: 8px;
+            border-left: 4px solid #764ba2;
+        }
+        
+        .week-title {
+            font-weight: bold;
+            color: #667eea;
+            margin-bottom: 5px;
+        }
+        
+        .resource-item {
+            background: #f9f9f9;
+            padding: 10px;
+            margin-bottom: 8px;
+            border-radius: 8px;
+            border-left: 4px solid #667eea;
+        }
     </style>
 </head>
 <body>
@@ -207,6 +316,7 @@
             
             <div class="error-message" id="errorMessage"></div>
             <div class="success-message" id="successMessage"></div>
+            
             <div id="resultContainer" style="margin-top:30px;"></div>
         </form>
     </div>
@@ -250,7 +360,7 @@
             
             try {
                 // Send request to API
-                const response = await fetch('/api/generate-roadmap/', {
+                const response = await fetch('/api/generate_roadmap/', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
@@ -263,11 +373,11 @@
                 
                 if (result.success) {
                     showSuccess('Roadmap generated successfully!');
-                    // Render the returned roadmap directly on the same page
-                    renderResults(result.data);
-                    // Scroll into view
-                    document.getElementById('resultContainer').scrollIntoView({ behavior: 'smooth' });
-                } else {
+                    // Store the roadmap data in sessionStorage
+                    sessionStorage.setItem('roadmapData', JSON.stringify(result.data));
+                    // Display the response in the output textarea
+                    displayResponse(result.data);                    // Scroll into view
+                    document.getElementById('resultContainer').scrollIntoView({ behavior: 'smooth' });                } else {
                     showError(result.error || 'Failed to generate roadmap');
                 }
             } catch (error) {
@@ -289,16 +399,17 @@
             successMessage.style.display = 'block';
         }
 
-        // Render results into the page (structure similar to results.html)
-        function renderResults(data) {
+        // Display the generated response in structured sections
+        function displayResponse(data) {
             const container = document.getElementById('resultContainer');
             let html = '';
 
             // Summary
             if (data.summary) {
                 html += `
-                    <div class="summary">
-                        <strong>📌 Summary:</strong> ${data.summary}
+                    <div class="section">
+                        <h2>📌 Summary</h2>
+                        <p>${data.summary}</p>
                     </div>
                 `;
             }
@@ -326,7 +437,7 @@
                     const techStack = project.tech_stack || project.technologies || [];
                     
                     html += `<div class="project-card">
-                        <h4>Project ${index + 1}: ${projectName}</h4>
+                        <h3>Project ${index + 1}: ${projectName}</h3>
                         <p>${description}</p>
                         <div class="project-meta">
                             <div class="meta-item">
@@ -362,40 +473,45 @@
                 html += `</div>`;
             }
 
-            // Resources
-            if (data.resources && Array.isArray(data.resources)) {
-                html += `<div class="section">
-                    <h2>📖 Recommended Resources</h2>`;
-                data.resources.forEach((resource, index) => {
-                    const resourceText = typeof resource === 'string' ? resource : resource.name || resource.title || JSON.stringify(resource);
-                    html += `<div class="resource-item">
-                        ${index + 1}. ${resourceText}
+            // Raw GPT Response - parse and section it
+            if (data.raw_response) {
+                const rawText = data.raw_response;
+                const sections = parseRawResponse(rawText);
+                for (const [title, content] of Object.entries(sections)) {
+                    html += `<div class="section">
+                        <h2>${title}</h2>
+                        <p>${content.replace(/\n/g, '<br>')}</p>
                     </div>`;
-                });
-                html += `</div>`;
+                }
             }
 
-            // Action Buttons (download and reset)
-            html += `<div class="button-group" style="margin-top:20px;">
-                <button class="btn-primary" id="downloadPdfBtn">📥 Download as PDF</button>
-                <button class="btn-secondary" id="createNewBtn">↩️ Create New Roadmap</button>
-            </div>`;
-
             container.innerHTML = html;
-
-            // Attach actions
-            document.getElementById('downloadPdfBtn').addEventListener('click', function() {
-                downloadRoadmapPdf(container.innerHTML);
-            });
-            document.getElementById('createNewBtn').addEventListener('click', function() {
-                // Clear results and form
-                container.innerHTML = '';
-                successMessage.style.display = 'none';
-            });
         }
 
-        // Open a new window with only the results content and print (user can save as PDF)
-        function downloadRoadmapPdf(htmlContent) {
+        // Parse raw GPT response into sections
+        function parseRawResponse(text) {
+            const sections = {};
+            const lines = text.split('\n');
+            let currentSection = 'General';
+            let currentContent = '';
+
+            for (const line of lines) {
+                const trimmed = line.trim();
+                if (trimmed.match(/^(Summary|Milestones?|Projects?|Schedule|Resources?|Weekly|Roadmap)/i)) {
+                    if (currentContent) {
+                        sections[currentSection] = currentContent.trim();
+                    }
+                    currentSection = trimmed.replace(/:$/, '');
+                    currentContent = '';
+                } else {
+                    currentContent += line + '\n';
+                }
+            }
+            if (currentContent) {
+                sections[currentSection] = currentContent.trim();
+            }
+            return sections;
+        }
             const printWindow = window.open('', '_blank');
             const style = `
                 <style>
@@ -414,7 +530,7 @@
                 // Optionally close the window after printing
                 // printWindow.close();
             }, 500);
-        }
+        
     </script>
 </body>
 </html>
