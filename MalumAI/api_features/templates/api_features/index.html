@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>MalumAI | Learning Roadmap Generator</title>
+<title>AgenticAI | Autonomous Intelligence</title>
 
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;600;800&display=swap" rel="stylesheet">
@@ -72,12 +72,12 @@ header {
 .hero-content { max-width: 800px; width: 100%; }
 
 .hero h1 {
-  font-size: clamp(2rem, 5vw, 3.8rem); font-weight: 800; letter-spacing: -2px; line-height: 1.1;
+  font-size: clamp(2.5rem, 6vw, 4.2rem); font-weight: 800; letter-spacing: -2px; line-height: 1.1;
   background: linear-gradient(135deg, #fff 20%, var(--accent), var(--secondary));
-  -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+  background-clip: text; -webkit-background-clip: text; -webkit-text-fill-color: transparent;
 }
 
-[data-theme="light"] .hero h1 { background: linear-gradient(135deg, #0f172a 20%, var(--primary), var(--secondary)); -webkit-background-clip: text; }
+[data-theme="light"] .hero h1 { background: linear-gradient(135deg, #0f172a 20%, var(--primary), var(--secondary)); background-clip: text; -webkit-background-clip: text; }
 
 .hero p { font-size: 1.15rem; margin: 25px 0 40px; opacity: 0.7; color: var(--light); }
 
@@ -110,23 +110,19 @@ header {
 
 /* --- FROSTED OUTPUT BOX --- */
 #output-section { padding: 80px 8%; }
-.output-container { max-width: 900px; margin: auto; }
+.output-container { max-width: 1000px; margin: auto; }
 
 .section-title {
   text-align: center; font-size: 2.2rem; margin-bottom: 40px; font-weight: 800;
   background: linear-gradient(to right, var(--accent), var(--secondary));
-  -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+  background-clip: text; -webkit-background-clip: text; -webkit-text-fill-color: transparent;
 }
 
 .output-glass-box {
   background: var(--glass); backdrop-filter: blur(25px) saturate(180%);
   padding: 50px; border-radius: 35px; border: 1px solid var(--glass-border);
   box-shadow: 0 30px 60px rgba(0,0,0,0.4); position: relative;
-}
-
-.output-glass-box::after {
-  content: ""; position: absolute; top: 0; right: 0; width: 150px; height: 150px;
-  background: radial-gradient(circle, rgba(34, 211, 238, 0.08), transparent 70%);
+  word-wrap: break-word; overflow-wrap: break-word;
 }
 
 .output-glass-box h3 {
@@ -134,7 +130,10 @@ header {
   letter-spacing: 1.5px; margin-bottom: 20px; display: flex; align-items: center; gap: 10px;
 }
 
-.output-text { line-height: 1.8; font-size: 1.05rem; white-space: pre-wrap; }
+.output-text { line-height: 1.8; font-size: 1.05rem; }
+.output-text p { margin-bottom: 15px; }
+.output-text ul { margin-left: 20px; margin-bottom: 20px; }
+.output-text li { margin-bottom: 8px; }
 
 .divider { height: 1px; background: var(--glass-border); margin: 40px 0; border: none; }
 
@@ -157,6 +156,15 @@ footer { padding: 60px; text-align: center; opacity: 0.5; border-top: 1px solid 
 }
 @keyframes spin { 100% { transform: rotate(360deg); } }
 
+/* Grid for Weekly Schedule */
+.timetable-grid {
+  display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); 
+  gap: 15px; margin-top: 15px;
+}
+.week-card {
+  background: rgba(79, 70, 229, 0.1); padding: 15px; 
+  border-radius: 10px; border-left: 3px solid var(--accent);
+}
 </style>
 </head>
 
@@ -165,21 +173,21 @@ footer { padding: 60px; text-align: center; opacity: 0.5; border-top: 1px solid 
 <div class="bg-visuals" id="visuals"></div>
 
 <header>
-  <div class="logo"><i class="fa-solid fa-brain"></i> MalumAI</div>
+  <div class="logo"><i class="fa-solid fa-brain"></i> AgenticAI</div>
   <div class="theme-switch" id="theme-btn"><i class="fa-solid fa-moon"></i></div>
 </header>
 
 <section class="hero">
   <div class="hero-content">
-    <h1>Scaling Human Potential <br> With Agentic Logic</h1>
-    <p>Autonomous project engine designed to provide you a career roadmap</p>
+    <h1>From Intent <br> to Autonomous Action</h1>
+    <p>Deploy intelligent agents that plan, reason, and execute complex tasks based on your unique profile.</p>
 
     <form id="form" class="ai-form">
       {% csrf_token %}
-      <input type="text" id="skillset" placeholder="Core Skills (e.g. Python, SQL)" required>
-      <input type="text" id="interest" placeholder="Domain Interests (e.g. Fintech)" required>
-      <input type="text" id="goal" placeholder="Primary Objective (Optional)">
-      <button type="submit" class="cta">Generate Roadmap</button>
+      <input type="text" id="skills" placeholder="Your Skills (e.g. Python, Design)" required>
+      <input type="text" id="hobbies" placeholder="Your Interests (e.g. AI, Space)" required>
+      <input type="text" id="goal" placeholder="Career Goal (Optional)">
+      <button type="submit" class="cta">Initialize Agent Synthesis</button>
       <div id="loading" style="margin-top: 20px; font-weight: 600; color: var(--accent);"></div>
     </form>
   </div>
@@ -187,40 +195,36 @@ footer { padding: 60px; text-align: center; opacity: 0.5; border-top: 1px solid 
 
 <section id="output-section">
   <div class="output-container">
-    <h2 class="section-title">Output</h2>
+    <h2 class="section-title">Operational Intel</h2>
 
     <div class="output-glass-box">
-      <div id="project-desc">
+      <div id="project-desc" class="output-text">
         <h3><i class="fa-solid fa-terminal"></i> System Reasoning</h3>
-        <div class="output-text">
-          <p style="opacity: 0.4; font-style: italic;">Awaiting parameters to calibrate logic chains...</p>
-        </div>
+        <p style="opacity: 0.4; font-style: italic;">Awaiting user parameters to initialize logic chains...</p>
       </div>
 
       <hr class="divider">
 
-      <div id="timetable">
+      <div id="timetable" class="output-text">
         <h3><i class="fa-solid fa-microchip"></i> Tactical Roadmap</h3>
-        <div class="output-text">
-          <p style="opacity: 0.4; font-style: italic;">Roadmap data visualization pending.</p>
-        </div>
+        <p style="opacity: 0.4; font-style: italic;">Roadmap data will be visualized here.</p>
       </div>
     </div>
   </div>
 </section>
 
 <section>
-  <h2 class="section-title">Core Architecture</h2>
+  <h2 class="section-title">Agent Capabilities</h2>
   <div class="grid">
-    <div class="card">Long-term Memory</div>
     <div class="card">Autonomous Reasoning</div>
-    <div class="card">Tool Integration</div>
-    <div class="card">Recursive Logic</div>
+    <div class="card">Multi-Agent Collaboration</div>
+    <div class="card">Tool & API Integration</div>
+    <div class="card">Memory & Feedback Loops</div>
   </div>
 </section>
 
 <footer>
-  © 2026 MalumAI — Advanced Autonomous Intelligence Platform
+  © 2026 AgenticAI — Autonomous Intelligence Platform
 </footer>
 
 <script>
@@ -236,7 +240,7 @@ for(let i=0; i<35; i++) {
   container.appendChild(p);
 }
 
-// --- Dark/Light Mode ---
+// --- Theme Toggle ---
 const themeBtn = document.getElementById('theme-btn');
 themeBtn.addEventListener('click', () => {
   const isLight = document.body.getAttribute('data-theme') === 'light';
@@ -244,142 +248,118 @@ themeBtn.addEventListener('click', () => {
   themeBtn.innerHTML = isLight ? '<i class="fa-solid fa-moon"></i>' : '<i class="fa-solid fa-sun"></i>';
 });
 
-// --- Backend Connector ---
+// --- Original Backend Integration ---
 document.getElementById("form").addEventListener("submit", async function(e) {
   e.preventDefault();
 
-  const skillset = document.getElementById("skillset").value;
-  const interest = document.getElementById("interest").value;
-  const goal = document.getElementById("goal").value;
+  const skillset = document.getElementById("skills").value.trim();
+  const interest = document.getElementById("hobbies").value.trim();
+  const goal = document.getElementById("goal").value.trim();
 
-  document.getElementById("loading").innerHTML =
-    `<div class="spinner"></div> Engaging Neural Sub-routines...`;
+  if (!skillset || !interest) {
+    document.getElementById("loading").innerHTML = `<p style="color: #ff6b6b; margin-top: 15px;">⚠️ Skills and Interests are required</p>`;
+    return;
+  }
 
-  const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+  document.getElementById("loading").innerHTML = `<div class="spinner"></div><p style="margin-top: 10px; display:inline-block;">Synthesizing intelligent project...</p>`;
 
   try {
-    const response = await fetch('/api/generate-roadmap/', {
-      method: 'POST',
+    const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]')?.value || '';
+
+    const response = await fetch("/api/generate-roadmap/", {
+      method: "POST",
       headers: {
-        'Content-Type': 'application/json',
-        'X-CSRFToken': csrfToken
+        "Content-Type": "application/json",
+        ...(csrfToken ? { "X-CSRFToken": csrfToken } : {})
       },
-      body: JSON.stringify({ skillset, interest, goal })
+      body: JSON.stringify({
+        skillset: skillset,
+        interest: interest,
+        goal: goal || "General learning"
+      })
     });
 
-    const result = await response.json();
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.error || `HTTP Error: ${response.status}`);
+    }
+
+    const data = await response.json();
     document.getElementById("loading").innerHTML = "";
 
-    if (result.success) {
-      // Store in sessionStorage
-      sessionStorage.setItem('roadmapData', JSON.stringify(result.data));
-
-      // Populate the output sections
-      populateOutput(result.data);
-
-      // Smooth scroll to results
-      window.scrollTo({
-        top: document.getElementById("output-section").offsetTop - 100,
-        behavior: 'smooth'
-      });
-    } else {
-      document.getElementById("project-desc").innerHTML =
-        `<h3><i class="fa-solid fa-terminal"></i> System Reasoning</h3><div class="output-text">${result.error}</div>`;
+    if (!data.success) {
+      document.getElementById("loading").innerHTML = `<p style="color: #ff6b6b; margin-top: 15px;">❌ ${data.error || 'Failed to generate roadmap'}</p>`;
+      return;
     }
+
+    const roadmapData = data.data;
+
+    // --- Build Project Description HTML ---
+    let projectDescHTML = `<h3>🚀 Project Description</h3>`;
+    
+    if (roadmapData.parse_error) {
+      projectDescHTML += `<p style="color: #ffa500; margin-bottom: 20px;"><strong>⚠️ Note:</strong> ${roadmapData.parse_error}</p>`;
+    }
+    
+    if (roadmapData.summary) {
+      projectDescHTML += `<p style="margin-bottom: 20px;"><strong>Summary:</strong> ${roadmapData.summary}</p>`;
+    }
+
+    if (roadmapData.roadmap && Array.isArray(roadmapData.roadmap)) {
+      projectDescHTML += `<p><strong>🎯 Key Milestones:</strong></p><ul style="margin-bottom: 20px;">`;
+      roadmapData.roadmap.forEach((milestone, idx) => {
+        projectDescHTML += `<li>${idx + 1}. ${milestone}</li>`;
+      });
+      projectDescHTML += `</ul>`;
+    }
+
+    if (roadmapData.projects && Array.isArray(roadmapData.projects)) {
+      projectDescHTML += `<p><strong>💻 Hands-On Projects:</strong></p><ul>`;
+      roadmapData.projects.forEach((project, idx) => {
+        const name = project.name || project.project_name || `Project ${idx + 1}`;
+        const desc = project.description || '';
+        const duration = project.duration_weeks || project.duration || 'N/A';
+        const tech = (project.tech_stack || project.technologies || []).join(', ') || 'Various';
+        projectDescHTML += `
+          <li style="margin-bottom: 15px;">
+            <strong>${idx + 1}. ${name}</strong> (${duration} weeks)<br>
+            <em>${desc}</em><br>
+            <span style="opacity: 0.7; font-size: 0.9em;">Tech: ${tech}</span>
+          </li>`;
+      });
+      projectDescHTML += `</ul>`;
+    }
+
+    document.getElementById("project-desc").innerHTML = projectDescHTML;
+
+    // --- Build Timetable HTML ---
+    let timetableHTML = `<h3>📅 12-Week Timetable</h3>`;
+    if (roadmapData.weekly_schedule && Array.isArray(roadmapData.weekly_schedule)) {
+      timetableHTML += `<div class="timetable-grid">`;
+      roadmapData.weekly_schedule.slice(0, 12).forEach((week, idx) => {
+        const weekNum = idx + 1;
+        const weekContent = typeof week === 'string' ? week : week.tasks || week.description || JSON.stringify(week);
+        timetableHTML += `
+          <div class="week-card">
+            <strong>Week ${weekNum}</strong>
+            <p style="margin-top: 8px; font-size: 0.9em; opacity: 0.9;">${weekContent}</p>
+          </div>`;
+      });
+      timetableHTML += `</div>`;
+    } else {
+      timetableHTML += `<p>No weekly schedule available.</p>`;
+    }
+
+    document.getElementById("timetable").innerHTML = timetableHTML;
+
+    // Smooth scroll to output
+    window.scrollTo({ top: document.getElementById("output-section").offsetTop - 100, behavior: 'smooth' });
 
   } catch (error) {
-    document.getElementById("loading").innerHTML =
-      "⚠️ Uplink failed. Ensure your backend server is running.";
+    console.error("Error:", error);
+    document.getElementById("loading").innerHTML = `<p style="color: #ff6b6b; margin-top: 15px;">❌ Error: ${error.message}</p>`;
   }
 });
-
-// Function to populate output sections with structured data
-function populateOutput(data) {
-  let reasoning = '';
-  let roadmap = '';
-
-  if (data.summary) {
-    reasoning += `Summary: ${data.summary}\n\n`;
-  }
-
-  if (data.roadmap && Array.isArray(data.roadmap)) {
-    reasoning += 'Learning Milestones:\n';
-    data.roadmap.forEach((milestone, index) => {
-      reasoning += `${index + 1}. ${milestone}\n`;
-    });
-    reasoning += '\n';
-  }
-
-  if (data.resources && Array.isArray(data.resources)) {
-    reasoning += 'Recommended Resources:\n';
-    data.resources.forEach((resource, index) => {
-      const resText = typeof resource === 'string' ? resource : resource.name || resource.title || JSON.stringify(resource);
-      reasoning += `${index + 1}. ${resText}\n`;
-    });
-  }
-
-  if (data.projects && Array.isArray(data.projects)) {
-    roadmap += 'Hands-On Projects:\n';
-    data.projects.forEach((project, index) => {
-      const name = project.name || project.project_name || `Project ${index + 1}`;
-      const desc = project.description || '';
-      const duration = project.duration_weeks || project.duration || 'N/A';
-      roadmap += `${index + 1}. ${name} (${duration} weeks): ${desc}\n`;
-    });
-    roadmap += '\n';
-  }
-
-  if (data.weekly_schedule && Array.isArray(data.weekly_schedule)) {
-    roadmap += '12-Week Schedule:\n';
-    data.weekly_schedule.slice(0, 12).forEach((week, index) => {
-      const weekNum = index + 1;
-      const content = typeof week === 'string' ? week : week.tasks || week.description || JSON.stringify(week);
-      roadmap += `Week ${weekNum}: ${content}\n`;
-    });
-  }
-
-  if (data.raw_response) {
-    const sections = parseRawResponse(data.raw_response);
-    for (const [title, content] of Object.entries(sections)) {
-      if (title.toLowerCase().includes('project') || title.toLowerCase().includes('schedule') || title.toLowerCase().includes('roadmap')) {
-        roadmap += `${title}:\n${content}\n\n`;
-      } else {
-        reasoning += `${title}:\n${content}\n\n`;
-      }
-    }
-  }
-
-  document.getElementById("project-desc").innerHTML =
-    `<h3><i class="fa-solid fa-terminal"></i> System Reasoning</h3><div class="output-text">${reasoning || 'No reasoning data available.'}</div>`;
-
-  document.getElementById("timetable").innerHTML =
-    `<h3><i class="fa-solid fa-microchip"></i> Tactical Roadmap</h3><div class="output-text">${roadmap || 'No roadmap data available.'}</div>`;
-}
-
-// Parse raw GPT response into sections
-function parseRawResponse(text) {
-  const sections = {};
-  const lines = text.split('\n');
-  let currentSection = 'General';
-  let currentContent = '';
-
-  for (const line of lines) {
-    const trimmed = line.trim();
-    if (trimmed.match(/^(Summary|Milestones?|Projects?|Schedule|Resources?|Weekly|Roadmap)/i)) {
-      if (currentContent) {
-        sections[currentSection] = currentContent.trim();
-      }
-      currentSection = trimmed.replace(/:$/, '');
-      currentContent = '';
-    } else {
-      currentContent += line + '\n';
-    }
-  }
-  if (currentContent) {
-    sections[currentSection] = currentContent.trim();
-  }
-  return sections;
-}
 </script>
 
 </body>
