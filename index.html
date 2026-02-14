@@ -48,27 +48,6 @@ header {
   color: var(--accent);
 }
 
-nav ul {
-  display: flex;
-  gap: 22px;
-  list-style: none;
-}
-
-nav a {
-  color: var(--light);
-  text-decoration: none;
-}
-
-.cta {
-  background: linear-gradient(45deg, var(--primary), var(--accent));
-  padding: 12px 28px;
-  border-radius: 30px;
-  color: white;
-  font-weight: 600;
-  border: none;
-  cursor: pointer;
-}
-
 /* HERO */
 .hero {
   min-height: 100vh;
@@ -117,9 +96,66 @@ nav a {
   text-align: center;
 }
 
-.ai-form input:focus {
-  box-shadow: 0 0 10px rgba(34,211,238,0.7);
-  outline: none;
+.cta {
+  background: linear-gradient(45deg, var(--primary), var(--accent));
+  padding: 12px 28px;
+  border-radius: 30px;
+  color: white;
+  font-weight: 600;
+  border: none;
+  cursor: pointer;
+}
+
+/* OUTPUT SECTION */
+#output-section {
+  padding: 90px 8%;
+}
+
+.output-container {
+  max-width: 800px;
+  margin: auto;
+}
+
+.section-title {
+  text-align: center;
+  font-size: 2rem;
+  margin-bottom: 40px;
+  background: linear-gradient(to right, var(--accent), var(--secondary));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.project-card {
+  background: rgba(255,255,255,0.05);
+  padding: 30px;
+  border-radius: 20px;
+  border: 1px solid rgba(255,255,255,0.1);
+  white-space: pre-wrap;
+  min-height: 200px;
+}
+
+/* SECTIONS */
+section {
+  padding: 90px 8%;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 30px;
+}
+
+.card {
+  background: rgba(255,255,255,0.05);
+  padding: 35px;
+  border-radius: 16px;
+}
+
+/* FOOTER */
+footer {
+  padding: 50px;
+  text-align: center;
+  opacity: 0.6;
 }
 
 .spinner {
@@ -135,55 +171,6 @@ nav a {
 @keyframes spin {
   100% { transform: rotate(360deg); }
 }
-
-.project-card {
-  background: rgba(255,255,255,0.05);
-  padding: 25px;
-  margin-top: 25px;
-  border-radius: 20px;
-  border: 1px solid rgba(255,255,255,0.1);
-  white-space: pre-wrap;
-}
-
-/* SECTIONS */
-section {
-  padding: 90px 8%;
-}
-
-.section-title {
-  text-align: center;
-  font-size: 2rem; /* slightly smaller */
-  margin-bottom: 50px;
-  background: linear-gradient(to right, var(--accent), var(--secondary));
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-}
-
-/* CARDS */
-.grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-  gap: 30px;
-}
-
-.card {
-  background: rgba(255,255,255,0.05);
-  padding: 35px;
-  border-radius: 16px;
-  transition: 0.3s;
-}
-
-.card:hover {
-  transform: translateY(-6px);
-  border: 1px solid var(--accent);
-}
-
-/* FOOTER */
-footer {
-  padding: 50px;
-  text-align: center;
-  opacity: 0.6;
-}
 </style>
 </head>
 
@@ -191,63 +178,52 @@ footer {
 
 <header>
   <div class="logo"><i class="fa-solid fa-brain"></i> AgenticAI</div>
-  <nav>
-    <ul>
-      <li><a href="#capabilities">Capabilities</a></li>
-      <li><a href="#architecture">Architecture</a></li>
-      <li><a href="#usecases">Use Cases</a></li>
-      <li><a href="#" class="cta">Dashboard</a></li>
-    </ul>
-  </nav>
 </header>
 
 <section class="hero">
   <div class="hero-content">
     <h1>Autonomous AI Agents That Work for You</h1>
-    <p>
-      Build, deploy, and manage intelligent agents that plan, decide,
-      and execute real-world tasks with minimal human supervision.
-    </p>
+    <p>Build, deploy, and manage intelligent agents that plan, decide, and execute real-world tasks with minimal human supervision.</p>
 
     <form id="form" class="ai-form">
-      <input type="text" id="skills" placeholder="Your Skills (e.g. Python, Writing)" required>
-      <input type="text" id="hobbies" placeholder="Your Interests (e.g. AI, Climate)" required>
+      <input type="text" id="skills" placeholder="Your Skills(e.g Python,writing)" required>
+      <input type="text" id="hobbies" placeholder="Your Interestse.g (AI,Climate)" required>
       <input type="text" id="goal" placeholder="Career Goal (optional)">
       <button type="submit" class="cta">Generate Projects</button>
     </form>
 
     <div id="loading"></div>
-    <div id="result"></div>
   </div>
 </section>
 
-<section id="capabilities">
+<!-- OUTPUT SECTION ALWAYS VISIBLE -->
+<section id="output-section">
+  <div class="output-container">
+    <h2 class="section-title">Output</h2>
+
+    <div class="project-card">
+      <div id="project-desc">
+        <h3>Project Description</h3>
+        <p>Your generated project description will appear here.</p>
+      </div>
+
+      <hr style="margin:25px 0; opacity:0.2;">
+
+      <div id="timetable">
+        <h3>Timetable</h3>
+        <p>Your generated timetable will appear here.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section>
   <h2 class="section-title">Agent Capabilities</h2>
   <div class="grid">
     <div class="card">Autonomous Reasoning</div>
     <div class="card">Multi-Agent Collaboration</div>
     <div class="card">Tool & API Integration</div>
     <div class="card">Memory & Feedback Loops</div>
-  </div>
-</section>
-
-<section id="architecture">
-  <h2 class="section-title">How Agent AI Works</h2>
-  <div class="grid">
-    <div class="card">User Goal Input</div>
-    <div class="card">Planning Agent</div>
-    <div class="card">Execution Agents</div>
-    <div class="card">Feedback Loop</div>
-  </div>
-</section>
-
-<section id="usecases">
-  <h2 class="section-title">Use Cases</h2>
-  <div class="grid">
-    <div class="card">AI Research Assistant</div>
-    <div class="card">Startup Idea Generator</div>
-    <div class="card">Career Mapping Agent</div>
-    <div class="card">Portfolio Builder</div>
   </div>
 </section>
 
@@ -264,8 +240,7 @@ document.getElementById("form").addEventListener("submit", async function(e) {
   const goal = document.getElementById("goal").value;
 
   document.getElementById("loading").innerHTML =
-    `<div class="spinner"></div>Generating intelligent project ideas...`;
-  document.getElementById("result").innerHTML = "";
+    `<div class="spinner"></div>Generating intelligent project...`;
 
   try {
     const response = await fetch("http://127.0.0.1:8000/generate", {
@@ -277,8 +252,14 @@ document.getElementById("form").addEventListener("submit", async function(e) {
     const data = await response.json();
 
     document.getElementById("loading").innerHTML = "";
-    document.getElementById("result").innerHTML =
-      `<div class="project-card">${data.result}</div>`;
+
+    const parts = data.result.split("Timetable:");
+
+    document.getElementById("project-desc").innerHTML =
+      `<h3>Project Description</h3><p>${parts[0]}</p>`;
+
+    document.getElementById("timetable").innerHTML =
+      `<h3>Timetable</h3><p>${parts[1] || ""}</p>`;
 
   } catch (error) {
     document.getElementById("loading").innerHTML =
