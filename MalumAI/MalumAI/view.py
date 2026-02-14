@@ -3,7 +3,6 @@ from django.http import HttpResponse
 from django.views import View
 from django.views.generic import TemplateView
 
-# Function-based view
 def home(request):
     return HttpResponse("Welcome to MalumAI")
 
@@ -16,7 +15,6 @@ def index(request):
     return render(request, 'index.html', context)
 
 
-# Class-based view
 class HomeView(TemplateView):
     template_name = 'home.html'
     
@@ -33,4 +31,3 @@ class CustomView(View):
     def post(self, request):
         return HttpResponse("Custom POST view")
     
-print("AAAA")
