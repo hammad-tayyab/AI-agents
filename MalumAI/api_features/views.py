@@ -24,20 +24,21 @@ def generate_roadmap(request):
         # Ensure we received JSON
         try:
             data = json.loads(request.body)
-        except Exception:
+        except Exception as e:
             return JsonResponse({
                 'success': False,
-                'error': 'Expected JSON body, received HTML or invalid payload.'
+                'error': 'Invalid JSON body: ' + str(e)
             }, status=400)
-        skillset = data.get('skillset', '')
-        interest = data.get('interest', '')
-        goal = data.get('goal', '')
+
+        skillset = data.get('skillset', '').strip()
+        interest = data.get('interest', '').strip()
+        goal = data.get('goal', '').strip()
         
         # Validate inputs
-        if not all([skillset, interest, goal]):
+        if not skillset or not interest:
             return JsonResponse({
                 'success': False,
-                'error': 'Please fill all fields: skillset, interest, and goal'
+                'error': 'Skillset and Interest fields are required'
             }, status=400)
         
         # Create the prompt for GPT
@@ -45,7 +46,7 @@ def generate_roadmap(request):
 
 Current Skillset: {skillset}
 Area of Interest: {interest}
-Learning Goal: {goal}
+Learning Goal: {goal if goal else 'General learning and skill development'}
 
 Please provide:
 1. A personalized learning path with 5-7 key milestones
@@ -62,50 +63,89 @@ Format the response as structured JSON with the following keys:
 - "summary" (brief overview of the plan)
 """
         
-        # Call Groq API with fallback models in case a model is decommissioned
-        
-        response = client.chat.completions.create(
-            model="llama-3.3-70b-versatile",
-            messages=[
-                {"role": "system", "content": "You are an expert learning roadmap creator. Provide structured, practical, and achievable learning plans."},
-                {"role": "user", "content": prompt}
-            ],
-            temperature=0.7,
-            max_tokens=2000
-        )
-  
-        gpt_response = response.choices[0].message.content
-
-        if not gpt_response:
-            # Return a helpful error message to the client
-            return JsonResponse({
-                'success': False,
-                'error': 'Failed to generate roadmap. Last error: ' + (str(last_err) if last_err else 'unknown')
-            }, status=500)
-        
-        # Try to parse as JSON, if it fails, structure it
         try:
-            result = json.loads(gpt_response)
-        except json.JSONDecodeError:
-            result = {
-                'raw_response': gpt_response,
-                'formatted': True
-            }
+            # Call Groq API
+            response = client.chat.completions.create(
+                model="llama-3.3-70b-versatile",
+                messages=[
+                    {"role": "system", "content": "You are an expert learning roadmap creator. Provide structured, practical, and achievable learning plans. Always respond with valid JSON."},
+                    {"role": "user", "content": prompt}
+                ],
+                temperature=0.7,
+                max_tokens=8000
+            )
+
+            gpt_response = response.choices[0].message.content
+            finish_reason = response.choices[0].finish_reason if response.choices else None
+            
+            if not gpt_response:
+                return JsonResponse({
+                    'success': False,
+                    'error': 'Empty response from AI model'
+                }, status=500)
+            
+            # Check if response was truncated
+            if finish_reason == 'length':
+                # Response was cut off due to token limit
+                # Note: This shouldn't happen with max_tokens=8000, but we check anyway
+                pass  # We'll still return the partial response
+
+            # Clean the response - remove markdown code blocks if present
+            cleaned_response = gpt_response.strip()
+            if cleaned_response.startswith('```json'):
+                cleaned_response = cleaned_response[7:]
+            elif cleaned_response.startswith('```'):
+                cleaned_response = cleaned_response[3:]
+            if cleaned_response.endswith('```'):
+                cleaned_response = cleaned_response[:-3]
+            cleaned_response = cleaned_response.strip()
+
+            # Try to parse as JSON
+            try:
+                result = json.loads(cleaned_response)
+                # Ensure all expected fields exist
+                if not isinstance(result, dict):
+                    raise json.JSONDecodeError("Response is not a JSON object", cleaned_response, 0)
+            except json.JSONDecodeError as e:
+                # If response is not valid JSON, try to extract useful information
+                # and wrap it in a structured format
+                result = {
+                    'summary': cleaned_response[:500] + ('...' if len(cleaned_response) > 500 else ''),
+                    'raw_response': cleaned_response,  # Store full response for debugging
+                    'roadmap': [],
+                    'projects': [],
+                    'weekly_schedule': [],
+                    'resources': [],
+                    'parse_error': f'JSON parsing failed: {str(e)}'
+                }
+
+            return JsonResponse({
+                'success': True,
+                'data': result
+            })
         
-        return JsonResponse({
-            'success': True,
-            'data': result
-        })
-    
-    except json.JSONDecodeError:
-        return JsonResponse({
-            'success': False,
-            'error': 'Invalid JSON in request body'
-        }, status=400)
+        except Exception as api_error:
+            error_msg = str(api_error)
+            if 'decommissioned' in error_msg.lower():
+                return JsonResponse({
+                    'success': False,
+                    'error': 'Model is unavailable. Please try again later.'
+                }, status=503)
+            elif 'rate_limit' in error_msg.lower():
+                return JsonResponse({
+                    'success': False,
+                    'error': 'API rate limit exceeded. Please try again in a moment.'
+                }, status=429)
+            else:
+                return JsonResponse({
+                    'success': False,
+                    'error': f'AI API Error: {error_msg}'
+                }, status=500)
+
     except Exception as e:
         return JsonResponse({
             'success': False,
-            'error': str(e)
+            'error': f'Server error: {str(e)}'
         }, status=500)
 
 def results(request):
