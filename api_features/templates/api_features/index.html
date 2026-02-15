@@ -177,6 +177,23 @@ footer { padding: 60px; text-align: center; opacity: 0.5; border-top: 1px solid 
   <div class="theme-switch" id="theme-btn"><i class="fa-solid fa-moon"></i></div>
 </header>
 
+<script>
+// Check for OAuth success on page load
+document.addEventListener('DOMContentLoaded', function() {
+  const urlParams = new URLSearchParams(window.location.search);
+  if (urlParams.get('oauth_success') === '1') {
+    // Remove the parameter from URL
+    const newUrl = window.location.pathname + window.location.hash;
+    window.history.replaceState({}, document.title, newUrl);
+    
+    // Show success message
+    setTimeout(() => {
+      alert('✅ Google Calendar authentication successful! You can now add events to your calendar.');
+    }, 1000);
+  }
+});
+</script>
+
 <section class="hero">
   <div class="hero-content">
     <h1>From Intent <br> to Autonomous Action</h1>
@@ -415,6 +432,78 @@ document.getElementById("form").addEventListener("submit", async function(e) {
           btn.style.background = "linear-gradient(45deg, #34a853, #2e7d32)";
           status.textContent = `✅ ${result.message}`;
           status.style.color = "#34a853";
+        } else if (result.oauth_required) {
+          // OAuth authentication required
+          status.textContent = `🔐 Opening Google authentication...`;
+          status.style.color = "#4285f4";
+          
+          // Open OAuth URL in new window
+          const oauthWindow = window.open(result.oauth_url, 'google_oauth', 'width=600,height=700');
+          
+          if (oauthWindow) {
+            // Poll for OAuth completion
+            const pollOAuth = setInterval(async () => {
+              try {
+                // Check if window is closed
+                if (oauthWindow.closed) {
+                  clearInterval(pollOAuth);
+                  // Try the calendar request again
+                  status.textContent = `🔄 Completing authentication...`;
+                  
+                  const retryResponse = await fetch("/api/add_to_calendar/", {
+                    method: "POST",
+                    headers: {
+                      "Content-Type": "application/json",
+                      ...(csrfToken ? { "X-CSRFToken": csrfToken } : {})
+                    },
+                    body: JSON.stringify({
+                      roadmap_data: roadmapData,
+                      start_date: null
+                    })
+                  });
+                  
+                  const retryResult = await retryResponse.json();
+                  
+                  if (retryResult.success) {
+                    btn.innerHTML = `<i class="fa-solid fa-check"></i> Added to Calendar!`;
+                    btn.style.background = "linear-gradient(45deg, #34a853, #2e7d32)";
+                    status.textContent = `✅ ${retryResult.message}`;
+                    status.style.color = "#34a853";
+                  } else {
+                    btn.innerHTML = `<i class="fa-brands fa-google"></i> Add to Google Calendar`;
+                    btn.disabled = false;
+                    status.textContent = `❌ ${retryResult.error || 'Authentication failed'}`;
+                    status.style.color = "#ff6b6b";
+                  }
+                }
+              } catch (pollError) {
+                clearInterval(pollOAuth);
+                console.error("OAuth polling error:", pollError);
+                btn.innerHTML = `<i class="fa-brands fa-google"></i> Add to Google Calendar`;
+                btn.disabled = false;
+                status.textContent = `❌ Authentication error`;
+                status.style.color = "#ff6b6b";
+              }
+            }, 2000); // Check every 2 seconds
+            
+            // Timeout after 5 minutes
+            setTimeout(() => {
+              clearInterval(pollOAuth);
+              if (!oauthWindow.closed) {
+                oauthWindow.close();
+              }
+              btn.innerHTML = `<i class="fa-brands fa-google"></i> Add to Google Calendar`;
+              btn.disabled = false;
+              status.textContent = `⏰ Authentication timed out`;
+              status.style.color = "#ff6b6b";
+            }, 300000); // 5 minutes
+          } else {
+            // Popup blocked
+            btn.innerHTML = `<i class="fa-brands fa-google"></i> Add to Google Calendar`;
+            btn.disabled = false;
+            status.textContent = `❌ Popup blocked. Please allow popups and try again.`;
+            status.style.color = "#ff6b6b";
+          }
         } else {
           btn.innerHTML = `<i class="fa-brands fa-google"></i> Add to Google Calendar`;
           btn.disabled = false;

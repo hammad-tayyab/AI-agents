@@ -1,4 +1,52 @@
-from django.shortcuts import render
+"""
+================================================================================
+MALUM AI - API FEATURES VIEWS MODULE
+================================================================================
+
+Primary Views Module for the MalumAI Application
+
+OVERVIEW:
+This module contains all Django views and functions for the MalumAI platform,
+which provides intelligent learning roadmap generation, Google Calendar 
+integration, and autonomous GitHub repository creation.
+
+KEY COMPONENTS:
+
+1. ROADMAP GENERATION
+   - generate_roadmap(): AI-powered learning roadmap generation using Groq API
+   - Processes user skills, interests, and goals to create personalized paths
+
+2. GOOGLE CALENDAR INTEGRATION
+   - OAuth2 flow handling for GitHub-compatible web authentication
+   - Automatic event creation from roadmaps (weekly tasks, daily reminders, projects)
+   - Secure token storage and credential management
+   - Callback handler for OAuth response processing
+
+3. AUTONOMOUS AGENT (GitHub Repository Creator)
+   - Runs in background threads to create GitHub repositories
+   - Generates starter code and README files using AI
+   - Integrates project creation with user roadmaps
+
+4. UTILITIES AND HELPERS
+   - Task status tracking for long-running operations
+   - Error handling and validation
+   - CSRF protection and security measures
+
+DEPENDENCIES:
+- Django (web framework)
+- Groq (large language model API)
+- Google Auth Libraries (OAuth2 authentication)
+- Google API Client (Calendar API)
+- GitHub API (repository management)
+- threading (background task execution)
+
+AUTHORS: MalumAI Team
+LAST UPDATED: February 2026
+
+================================================================================
+"""
+
+from django.shortcuts import render, redirect
 from django.http import JsonResponse
 from django.views.decorators.http import require_http_methods
 from django.views.decorators.csrf import ensure_csrf_cookie
@@ -536,20 +584,22 @@ def run_agent(skillset, interest, goal, gpt_response='', task_id=None):
 import datetime
 from google.auth.transport.requests import Request
 from google.oauth2.credentials import Credentials
-from google_auth_oauthlib.flow import InstalledAppFlow
+from google_auth_oauthlib.flow import Flow
 from googleapiclient.discovery import build
+import urllib.parse
 
 # Google Calendar API scopes
 CALENDAR_SCOPES = ['https://www.googleapis.com/auth/calendar']
 
-def get_calendar_service():
+def get_calendar_service(request=None):
     """
     Get authenticated Google Calendar service.
     Handles OAuth2 flow and token refresh automatically.
+    For web applications, uses the web OAuth flow.
     """
     # Get the base directory (api_features folder)
     base_dir = os.path.dirname(os.path.abspath(__file__))
-    
+
     # Try multiple possible credential file names
     possible_credential_files = [
         'credentials.json',
@@ -557,22 +607,66 @@ def get_calendar_service():
         'credintials.json',
         'credentials (1).json'
     ]
-    
+
     credentials_path = None
     for cred_file in possible_credential_files:
         test_path = os.path.join(base_dir, cred_file)
         if os.path.exists(test_path):
             credentials_path = test_path
             break
-    
+
     token_path = os.path.join(base_dir, 'token.json')
-    
+
     creds = None
     # Check if token.json exists
     if os.path.exists(token_path):
         creds = Credentials.from_authorized_user_file(token_path, CALENDAR_SCOPES)
-    
-    # If there are no (valid) credentials available, let the user log in
+
+    # If there are no (valid) credentials available, start OAuth flow
+    if not creds or not creds.valid:
+        if creds and creds.expired and creds.refresh_token:
+            creds.refresh(Request())
+        else:
+            # For web application, redirect to OAuth flow
+            if request:
+                return initiate_oauth_flow(request)
+            else:
+                # Fallback to local server flow for backward compatibility
+                return get_calendar_service_local()
+
+        # Save the credentials for the next run
+        with open(token_path, 'w') as token:
+            token.write(creds.to_json())
+
+    return build('calendar', 'v3', credentials=creds)
+
+def get_calendar_service_local():
+    """
+    Fallback method using local server OAuth flow.
+    Used when no request object is available.
+    """
+    base_dir = os.path.dirname(os.path.abspath(__file__))
+
+    possible_credential_files = [
+        'credentials.json',
+        'credintials1.json',
+        'credintials.json',
+        'credentials (1).json'
+    ]
+
+    credentials_path = None
+    for cred_file in possible_credential_files:
+        test_path = os.path.join(base_dir, cred_file)
+        if os.path.exists(test_path):
+            credentials_path = test_path
+            break
+
+    token_path = os.path.join(base_dir, 'token.json')
+
+    creds = None
+    if os.path.exists(token_path):
+        creds = Credentials.from_authorized_user_file(token_path, CALENDAR_SCOPES)
+
     if not creds or not creds.valid:
         if creds and creds.expired and creds.refresh_token:
             creds.refresh(Request())
@@ -600,14 +694,123 @@ def get_calendar_service():
                         "For detailed instructions, see: GOOGLE_OAUTH_FIX.md"
                     )
                 raise
-        
-        # Save the credentials for the next run
+
         with open(token_path, 'w') as token:
             token.write(creds.to_json())
-    
+
     return build('calendar', 'v3', credentials=creds)
 
-def add_roadmap_to_calendar(roadmap_data, start_date=None):
+def initiate_oauth_flow(request):
+    """
+    Initiate the OAuth flow for web applications.
+    Returns the authorization URL for the user to visit.
+    """
+    base_dir = os.path.dirname(os.path.abspath(__file__))
+
+    possible_credential_files = [
+        'credentials.json',
+        'credintials1.json',
+        'credintials.json',
+        'credentials (1).json'
+    ]
+
+    credentials_path = None
+    for cred_file in possible_credential_files:
+        test_path = os.path.join(base_dir, cred_file)
+        if os.path.exists(test_path):
+            credentials_path = test_path
+            break
+
+    if not credentials_path:
+        raise FileNotFoundError(
+            f"Google OAuth credentials file not found in {base_dir}."
+        )
+
+    # Create flow for web application
+    flow = Flow.from_client_secrets_file(
+        credentials_path,
+        scopes=CALENDAR_SCOPES,
+        redirect_uri=request.build_absolute_uri(reverse('oauth_callback'))
+    )
+
+    # Generate authorization URL
+    authorization_url, state = flow.authorization_url(
+        access_type='offline',
+        include_granted_scopes='true',
+        prompt='consent'  # Force consent screen to ensure we get refresh token
+    )
+
+    # Store state in session for verification
+    request.session['oauth_state'] = state
+    request.session['oauth_flow'] = True
+
+    return authorization_url
+
+@require_http_methods(["GET"])
+def oauth_callback(request):
+    """
+    Handle OAuth callback from Google.
+    """
+    try:
+        base_dir = os.path.dirname(os.path.abspath(__file__))
+
+        possible_credential_files = [
+            'credentials.json',
+            'credintials1.json',
+            'credintials.json',
+            'credentials (1).json'
+        ]
+
+        credentials_path = None
+        for cred_file in possible_credential_files:
+            test_path = os.path.join(base_dir, cred_file)
+            if os.path.exists(test_path):
+                credentials_path = test_path
+                break
+
+        if not credentials_path:
+            return JsonResponse({
+                'success': False,
+                'error': 'Credentials file not found'
+            }, status=500)
+
+        # Verify state
+        state = request.session.get('oauth_state')
+        if not state or state != request.GET.get('state'):
+            return JsonResponse({
+                'success': False,
+                'error': 'Invalid OAuth state'
+            }, status=400)
+
+        flow = Flow.from_client_secrets_file(
+            credentials_path,
+            scopes=CALENDAR_SCOPES,
+            redirect_uri=request.build_absolute_uri(reverse('oauth_callback'))
+        )
+
+        # Exchange authorization code for credentials
+        flow.fetch_token(code=request.GET.get('code'))
+
+        # Store credentials
+        creds = flow.credentials
+        token_path = os.path.join(base_dir, 'token.json')
+        with open(token_path, 'w') as token:
+            token.write(creds.to_json())
+
+        # Clear session
+        del request.session['oauth_state']
+        del request.session['oauth_flow']
+
+        # Redirect back to main page with success message
+        return redirect(reverse('index') + '?oauth_success=1')
+
+    except Exception as e:
+        return JsonResponse({
+            'success': False,
+            'error': f'OAuth callback failed: {str(e)}'
+        }, status=500)
+
+def add_roadmap_to_calendar(roadmap_data, start_date=None, request=None):
     """
     Add roadmap tasks to Google Calendar.
     
@@ -617,12 +820,22 @@ def add_roadmap_to_calendar(roadmap_data, start_date=None):
             - projects: Array of projects with duration_weeks
             - summary: Summary of the roadmap
         start_date: Optional datetime.date object. If None, starts from today.
+        request: Django request object for OAuth flow
     
     Returns:
-        dict: Status and list of created event IDs
+        dict: Status and list of created event IDs, or OAuth URL if authentication needed
     """
     try:
-        service = get_calendar_service()
+        service = get_calendar_service(request)
+        
+        # Check if OAuth flow was initiated
+        if isinstance(service, str) and service.startswith('http'):
+            return {
+                'success': False,
+                'oauth_url': service,
+                'message': 'OAuth authentication required'
+            }
+        
         created_events = []
         
         # Use today as start date if not provided
@@ -792,9 +1005,17 @@ def add_to_calendar(request):
             except:
                 pass  # Use default (today)
         
-        result = add_roadmap_to_calendar(roadmap_data, start_date)
+        result = add_roadmap_to_calendar(roadmap_data, start_date, request)
         
-        if result['success']:
+        if result.get('oauth_url'):
+            # OAuth flow initiated, return the authorization URL
+            return JsonResponse({
+                'success': False,
+                'oauth_required': True,
+                'oauth_url': result['oauth_url'],
+                'message': 'Please authenticate with Google Calendar'
+            })
+        elif result['success']:
             return JsonResponse({
                 'success': True,
                 'message': f'Successfully added {result["events_created"]} events to your Google Calendar',
