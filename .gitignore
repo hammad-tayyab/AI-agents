@@ -5,3 +5,5 @@ token.json
 credentials.json
 credintials1.json
 .vscode/
+config/credentials/token.json
+config/credentials/credentials.json
