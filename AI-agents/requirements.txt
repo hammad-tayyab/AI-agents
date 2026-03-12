@@ -1,0 +1,17 @@
+# Django Framework
+Django>=4.2.0,<5.0.0
+
+# Groq AI API
+groq>=0.4.0
+
+# Google Calendar API
+google-auth>=2.23.0
+google-auth-oauthlib>=1.1.0
+google-auth-httplib2>=0.1.1
+google-api-python-client>=2.100.0
+
+# Environment Variables
+python-dotenv>=1.0.0
+
+# HTTP Requests (usually included with Django, but explicit)
+requests>=2.31.0
