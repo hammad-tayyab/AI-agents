@@ -89,30 +89,26 @@ def get_calendar_service():
 def add_tasks_to_calendar(plan_dict):
     """
     LEGACY FUNCTION - Use views.py version instead
-    
-    Parse task plan dictionary and add events to Google Calendar.
-    
-    EXPECTED INPUT FORMAT:
-      {
-        "Day 1": "Task 1, Task 2, Task 3",
-        "Day 2": "Task 1, Task 2",
-        ...
-      }
-    
-    PROCESSING:
-      1. Get calendar service
-      2. For each day in plan_dict:
-         - Parse comma-separated tasks
-         - Create calendar event
-         - Set reminders
-    
-    PARAMETERS:
-      plan_dict (dict): Dictionary mapping day labels to task strings
-    
-    BEHAVIOR:
-      Creates Google Calendar events for each day
-      (Implementation incomplete in this legacy version)
+    ...
     """
-        
+    service = get_calendar_service()
+    today = datetime.date.today()
+
+    for day_label, tasks_str in plan_dict.items():
         # Calculate date (starting from today)
-        day_buffer = int(day_label.split()[1]) 
+        day_buffer = int(day_label.split()[1])
+        event_date = today + datetime.timedelta(days=day_buffer - 1)
+
+        tasks = [t.strip() for t in tasks_str.split(',')]
+
+        for task in tasks:
+            event = {
+                'summary': task,
+                'start': {'date': event_date.isoformat()},
+                'end':   {'date': event_date.isoformat()},
+                'reminders': {
+                    'useDefault': False,
+                    'overrides': [{'method': 'popup', 'minutes': 30}]
+                }
+            }
+            service.events().insert(calendarId='primary', body=event).execute()
