@@ -202,6 +202,7 @@ document.addEventListener('DOMContentLoaded', function() {
     <p>Deploy intelligent agents that plan, reason, and execute complex tasks based on your unique profile.</p>
 
     <form id="form" class="ai-form">
+      {% csrf_token %}
       <input type="text" id="skills" placeholder="Your Skills (e.g. Python, Design)" required>
       <input type="text" id="hobbies" placeholder="Your Interests (e.g. AI, Space)" required>
       <input type="text" id="goal" placeholder="Career Goal (Optional)">
@@ -285,7 +286,7 @@ document.getElementById("form").addEventListener("submit", async function(e) {
     const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]')?.value || '';
 
     // Fixed URL to match Django URL pattern (with underscore, not dash)
-    const response = await fetch("/api/generate_roadmap/", {
+    const response = await fetch("/generate_roadmap/", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -414,7 +415,7 @@ document.getElementById("form").addEventListener("submit", async function(e) {
       try {
         const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]')?.value || '';
         
-        const response = await fetch("/api/add_to_calendar/", {
+        const response = await fetch("/add_to_calendar/", {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
@@ -451,7 +452,7 @@ document.getElementById("form").addEventListener("submit", async function(e) {
                   // Try the calendar request again
                   status.textContent = `🔄 Completing authentication...`;
                   
-                  const retryResponse = await fetch("/api/add_to_calendar/", {
+                  const retryResponse = await fetch("/add_to_calendar/", {
                     method: "POST",
                     headers: {
                       "Content-Type": "application/json",
@@ -525,7 +526,7 @@ document.getElementById("form").addEventListener("submit", async function(e) {
 
     // Initialize Agent Synthesis - Call run_agent() and poll status until repo ready
     try {
-      const agentResponse = await fetch("/api/run_agent/", {
+      const agentResponse = await fetch("/run_agent/", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -542,7 +543,7 @@ document.getElementById("form").addEventListener("submit", async function(e) {
           document.getElementById("loading").innerHTML += `<p style="color: #ff6b6b; margin-top: 10px;">⚠️ Agent initialization warning: ${agentData.error || 'Unknown error'}</p>`;
         } else {
           // Show immediate waiting message and start polling
-          const statusUrl = agentData.status_url || (agentData.task_id ? `/api/run_agent_status/${agentData.task_id}/` : null);
+          const statusUrl = agentData.status_url || (agentData.task_id ? `/run_agent_status/${agentData.task_id}/` : null);
           document.getElementById("loading").innerHTML += `<p id="repo-status" style="color: var(--accent); margin-top: 10px;"><span class=\"spinner\"></span> ${agentData.message || 'Your GitHub Repo is being made please wait..'}</p>`;
 
           if (statusUrl) {

@@ -11,4 +11,7 @@ urlpatterns = [
     path('', include('apps.roadmap.urls')),
     path('', include('apps.calendar.urls')),
     path('', include('apps.agent.urls')),
+    path('api/', include('apps.roadmap.urls')),
+    path('api/', include('apps.calendar.urls')),
+    path('api/', include('apps.agent.urls')),
 ]
